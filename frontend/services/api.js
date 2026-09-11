@@ -1,0 +1,1 @@
+const base=process.env.NEXT_PUBLIC_API_URL||"http://localhost:8000";async function get(path){const r=await fetch(base+path);if(!r.ok)throw Error(`API ${r.status}`);return r.json()}export const api={health:()=>get("/api/health"),market:()=>get("/api/market"),news:()=>get("/api/news"),events:()=>get("/api/economic-events")};
