@@ -13,3 +13,6 @@ async def news_unavailable_handler(request:Request,e:NewsUnavailableError):retur
 async def economic_unavailable_handler(request:Request,e:EconomicDataUnavailableError):return response(503,"economic_data_unavailable",str(e))
 from app.services.predictions import PredictionUnavailableError
 async def prediction_unavailable_handler(request:Request,e:PredictionUnavailableError):return response(503,'prediction_unavailable',str(e))
+
+from app.services.performance import ModelPerformanceUnavailableError
+async def model_performance_unavailable_handler(request:Request,e:ModelPerformanceUnavailableError):return response(503,'model_performance_unavailable',str(e))
