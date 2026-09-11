@@ -1,25 +1,18 @@
-"""Market-data route declarations."""
-
-from fastapi import APIRouter, Query
-
+"""Market-data routes backed by verified normalized persistence."""
+from fastapi import APIRouter, Query, Request
 from app.schemas.common import ErrorResponse
 from app.schemas.market import AssetSymbol, MarketDetailResponse, MarketOverviewResponse, Timeframe
-from app.services.availability import require_feature
-
+from app.services.market import MarketService
 
 router = APIRouter(tags=["Market Data"])
-NOT_READY_RESPONSE = {501: {"model": ErrorResponse, "description": "Market pipeline is not ready."}}
+UNAVAILABLE = {503: {"model": ErrorResponse, "description": "Verified market data is unavailable."}}
 
 
-@router.get("/market", response_model=MarketOverviewResponse, responses=NOT_READY_RESPONSE)
-async def get_market_overview(timeframe: Timeframe = Query(default=Timeframe.H1)) -> MarketOverviewResponse:
-    """Return the normalized snapshot collection once Phase 5 is complete."""
-    require_feature("Market data", available_in_phase=5)
+@router.get("/market", response_model=MarketOverviewResponse, responses=UNAVAILABLE)
+async def get_market_overview(request: Request, timeframe: Timeframe = Query(default=Timeframe.H1)) -> MarketOverviewResponse:
+    return await MarketService(request.app.state.mongo_manager).overview(timeframe)
 
 
-@router.get("/market/{symbol}", response_model=MarketDetailResponse, responses=NOT_READY_RESPONSE)
-async def get_market_symbol(
-    symbol: AssetSymbol, timeframe: Timeframe = Query(default=Timeframe.H1)
-) -> MarketDetailResponse:
-    """Return normalized OHLC data once Phase 5 is complete."""
-    require_feature(f"Market data for {symbol.value}", available_in_phase=5)
+@router.get("/market/{symbol}", response_model=MarketDetailResponse, responses=UNAVAILABLE)
+async def get_market_symbol(request: Request, symbol: AssetSymbol, timeframe: Timeframe = Query(default=Timeframe.H1), limit: int = Query(default=200, ge=1, le=5000)) -> MarketDetailResponse:
+    return await MarketService(request.app.state.mongo_manager).detail(symbol, timeframe, limit)
