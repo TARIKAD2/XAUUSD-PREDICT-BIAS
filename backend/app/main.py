@@ -13,19 +13,28 @@ from app.api.middleware import request_logging_middleware
 from app.api.routes.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging, get_logger
+from app.db.client import MongoClientManager
 from app.services.availability import FeatureNotReadyError
 
 
 @asynccontextmanager
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
-    """Log process lifecycle events without connecting future dependencies early."""
+    """Initialize and close process-scoped infrastructure around application lifetime."""
     logger = get_logger(__name__)
+    mongo_manager: MongoClientManager = application.state.mongo_manager
+    await mongo_manager.connect()
     logger.info(
         "application_started",
-        extra={"environment": application.state.settings.environment},
+        extra={
+            "environment": application.state.settings.environment,
+            "database_status": mongo_manager.status.value,
+        },
     )
-    yield
-    logger.info("application_stopped")
+    try:
+        yield
+    finally:
+        await mongo_manager.disconnect()
+        logger.info("application_stopped")
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -40,6 +49,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     application.state.settings = active_settings
+    application.state.mongo_manager = MongoClientManager(active_settings)
     application.add_middleware(
         CORSMiddleware,
         allow_origins=list(active_settings.cors_origins),

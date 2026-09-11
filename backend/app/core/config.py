@@ -24,7 +24,8 @@ class Settings(BaseSettings):
     environment: Literal["development", "test", "staging", "production"] = "development"
     log_level: str = "INFO"
     mongodb_uri: SecretStr | None = None
-    database_name: str = "ai_market_intelligence"
+    database_name: str = Field(default="ai_market_intelligence", min_length=1, max_length=63)
+    mongodb_server_selection_timeout_ms: int = Field(default=5000, ge=1000, le=60000)
     market_data_api_key: SecretStr | None = None
     news_api_key: SecretStr | None = None
     economic_data_api_key: SecretStr | None = None
@@ -50,6 +51,27 @@ class Settings(BaseSettings):
             raise ValueError(f"LOG_LEVEL must be one of: {allowed}")
         return normalized
 
+    @field_validator("mongodb_uri", mode="before")
+    @classmethod
+    def validate_mongodb_uri(cls, value: object) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, SecretStr):
+            value = value.get_secret_value()
+        uri = str(value).strip()
+        if not uri:
+            return None
+        if not uri.startswith(("mongodb://", "mongodb+srv://")):
+            raise ValueError("MONGODB_URI must start with mongodb:// or mongodb+srv://")
+        return uri
+
+    @field_validator("database_name")
+    @classmethod
+    def validate_database_name(cls, value: str) -> str:
+        if any(character in value for character in ("/", "\\", ".", "\"", "$", "\x00")):
+            raise ValueError("DATABASE_NAME contains unsupported MongoDB database-name characters")
+        return value
+
     @field_validator("api_cors_origins")
     @classmethod
     def validate_cors_origins(cls, value: str) -> str:
@@ -70,6 +92,13 @@ class Settings(BaseSettings):
     def cors_origins(self) -> tuple[str, ...]:
         """Return CORS origins in the form expected by FastAPI middleware."""
         return tuple(self.api_cors_origins.split(","))
+
+    @property
+    def mongodb_uri_value(self) -> str | None:
+        """Return the connection URI only for the database client; never log it."""
+        if self.mongodb_uri is None:
+            return None
+        return self.mongodb_uri.get_secret_value()
 
 
 @lru_cache
