@@ -1,0 +1,1 @@
+export default function NewsCard({item}){return <article className="card"><a href={item.url} target="_blank" rel="noreferrer">{item.title}</a><small>{item.source} · {item.importance} · {item.sentiment}</small></article>}

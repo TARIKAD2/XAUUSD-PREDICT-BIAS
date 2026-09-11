@@ -1,0 +1,1 @@
+export default function EconomicEventCard({item}){return <article className="card"><strong>{item.event} ({item.currency})</strong><small>Actual {item.actual??"—"} · Forecast {item.forecast??"—"}</small></article>}

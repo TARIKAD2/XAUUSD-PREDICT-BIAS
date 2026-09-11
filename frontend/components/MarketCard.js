@@ -1,0 +1,1 @@
+export default function MarketCard({item}){return <article className="card"><strong>{item.symbol}</strong><span>{item.price}</span><small>{item.daily_change_percent?.toFixed?.(2)}%</small></article>}
