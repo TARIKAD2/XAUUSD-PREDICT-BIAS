@@ -11,3 +11,5 @@ async def feature_not_ready_handler(request:Request,e:FeatureNotReadyError):retu
 async def market_data_unavailable_handler(request:Request,e:MarketDataUnavailableError):return response(503,"market_data_unavailable",str(e))
 async def news_unavailable_handler(request:Request,e:NewsUnavailableError):return response(503,"news_unavailable",str(e))
 async def economic_unavailable_handler(request:Request,e:EconomicDataUnavailableError):return response(503,"economic_data_unavailable",str(e))
+from app.services.predictions import PredictionUnavailableError
+async def prediction_unavailable_handler(request:Request,e:PredictionUnavailableError):return response(503,'prediction_unavailable',str(e))
