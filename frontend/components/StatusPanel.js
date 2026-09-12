@@ -1,1 +1,8 @@
-export default function StatusPanel({title,message}){return <section className="panel"><h2>{title}</h2><p className="muted">{message}</p></section>}
+export default function StatusPanel({ title, message, type = 'info' }) {
+  return (
+    <div className={`status-panel ${type}`}>
+      <h4>{title}</h4>
+      <p>{message}</p>
+    </div>
+  );
+}
