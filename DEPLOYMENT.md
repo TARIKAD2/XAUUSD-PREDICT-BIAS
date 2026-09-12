@@ -43,3 +43,4 @@ docker compose build
 docker compose up -d
 ```
 Make sure your `.env` file is populated.
+

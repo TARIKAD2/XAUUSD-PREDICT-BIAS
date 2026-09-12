@@ -375,3 +375,4 @@ with open("frontend/services/api.js", 'w', encoding='utf-8') as f:
     f.write(api_js.strip())
 
 print("Frontend setup complete!")
+
