@@ -1,0 +1,403 @@
+{
+  "step": 4,
+  "mode": "weekly",
+  "ok": true,
+  "horizon": 120,
+  "threshold": 0.01,
+  "n_folds": 4,
+  "fold_summary": [
+    {
+      "fold_id": 1,
+      "train_n": 5495,
+      "val_n": 2065,
+      "cut_ts": "2024-02-08 18:00:00",
+      "train_date_min": "2022-07-01 18:00:00",
+      "train_date_max": "2024-02-01 10:00:00",
+      "val_date_min": "2024-02-08 18:00:00",
+      "val_date_max": "2024-09-03 16:00:00",
+      "train_bullish": 2958,
+      "train_bearish": 2537,
+      "val_bullish": 1460,
+      "val_bearish": 605
+    },
+    {
+      "fold_id": 2,
+      "train_n": 7617,
+      "val_n": 2065,
+      "cut_ts": "2024-09-03 17:00:00",
+      "train_date_min": "2022-07-01 18:00:00",
+      "train_date_max": "2024-08-27 08:00:00",
+      "val_date_min": "2024-09-03 17:00:00",
+      "val_date_max": "2025-03-25 09:00:00",
+      "train_bullish": 4417,
+      "train_bearish": 3200,
+      "val_bullish": 1587,
+      "val_bearish": 478
+    },
+    {
+      "fold_id": 3,
+      "train_n": 9641,
+      "val_n": 2065,
+      "cut_ts": "2025-03-25 10:00:00",
+      "train_date_min": "2022-07-01 18:00:00",
+      "train_date_max": "2025-03-17 10:00:00",
+      "val_date_min": "2025-03-25 10:00:00",
+      "val_date_max": "2025-09-29 12:00:00",
+      "train_bullish": 5951,
+      "train_bearish": 3690,
+      "val_bullish": 1394,
+      "val_bearish": 671
+    },
+    {
+      "fold_id": 4,
+      "train_n": 11640,
+      "val_n": 2067,
+      "cut_ts": "2025-09-29 13:00:00",
+      "train_date_min": "2022-07-01 18:00:00",
+      "train_date_max": "2025-09-22 07:00:00",
+      "val_date_min": "2025-09-29 13:00:00",
+      "val_date_max": "2026-02-27 10:00:00",
+      "train_bullish": 7279,
+      "train_bearish": 4361,
+      "val_bullish": 1482,
+      "val_bearish": 585
+    }
+  ],
+  "walk_forward_aggregated": {
+    "logistic_regression": {
+      "mean_accuracy": 0.6102588702204947,
+      "std_accuracy": 0.10412140966119818,
+      "mean_balanced_accuracy": 0.5465214273106586,
+      "std_balanced_accuracy": 0.09627905109763142,
+      "mean_precision": 0.7508019852594271,
+      "std_precision": 0.08228640037360194,
+      "mean_recall": 0.6795281595660811,
+      "std_recall": 0.14634541543813728,
+      "mean_f1": 0.7062300112034641,
+      "std_f1": 0.09463933440133576,
+      "mean_roc_auc": 0.5920041792552051,
+      "std_roc_auc": 0.12131258970820939,
+      "mean_brier_score": 0.24475543142532458,
+      "std_brier_score": 0.03815153444710878,
+      "mean_accuracy_lift": -0.10663774451750149,
+      "std_accuracy_lift": 0.0871358989552316,
+      "mean_overfit_gap": 0.019507035490198055,
+      "std_overfit_gap": 0.114099435805579,
+      "mean_collapse": 0.0,
+      "std_collapse": 0.0,
+      "fold_balanced_accuracy": [
+        0.3988707121023435,
+        0.5544321935812155,
+        0.5641818139054539,
+        0.6686009896536212
+      ],
+      "fold_roc_auc": [
+        0.39930148307483304,
+        0.622943212766911,
+        0.6108711595575673,
+        0.7349008616215094
+      ],
+      "fold_brier_score": [
+        0.2865083225352149,
+        0.18260305584299746,
+        0.2529718516069958,
+        0.2569384957160901
+      ],
+      "fold_overfit_gap": [
+        0.18919819250165792,
+        -0.13079021342918107,
+        0.025657973550712643,
+        -0.0060378106623972805
+      ]
+    },
+    "random_forest": {
+      "mean_accuracy": 0.6195600529946548,
+      "std_accuracy": 0.15737497722865565,
+      "mean_balanced_accuracy": 0.515700635539499,
+      "std_balanced_accuracy": 0.019435888184091733,
+      "mean_precision": 0.7921253131630998,
+      "std_precision": 0.1238189862226431,
+      "mean_recall": 0.7363193038658831,
+      "std_recall": 0.37517381661741406,
+      "mean_f1": 0.6588917001746089,
+      "std_f1": 0.2829452581946366,
+      "mean_roc_auc": 0.6312280650835276,
+      "std_roc_auc": 0.016823559506079444,
+      "mean_brier_score": 0.38668635343558594,
+      "std_brier_score": 0.15589785018447763,
+      "mean_accuracy_lift": -0.09733656174334142,
+      "std_accuracy_lift": 0.14503530904667197,
+      "mean_overfit_gap": 0.2622824971390454,
+      "std_overfit_gap": 0.19230620629591763,
+      "mean_collapse": 0.5,
+      "std_collapse": 0.5,
+      "fold_balanced_accuracy": [
+        0.5476027397260274,
+        0.5,
+        0.5151998024319684,
+        0.5
+      ],
+      "fold_roc_auc": [
+        0.6480516245896071,
+        null,
+        0.6144045055774482,
+        null
+      ],
+      "fold_brier_score": [
+        0.5425842036200635,
+        0.19951647864660077,
+        0.2307885032511083,
+        0.23987533601378264
+      ],
+      "fold_overfit_gap": [
+        0.5902098980583272,
+        0.12828676520374171,
+        0.2079237357200998,
+        0.1227095895740129
+      ]
+    },
+    "xgboost": {
+      "mean_accuracy": 0.5265818447622093,
+      "std_accuracy": 0.1564126441524207,
+      "mean_balanced_accuracy": 0.4588171284581925,
+      "std_balanced_accuracy": 0.07791945752941465,
+      "mean_precision": 0.7265685732356783,
+      "std_precision": 0.13437371252945798,
+      "mean_recall": 0.5879492095341828,
+      "std_recall": 0.3417512514450146,
+      "mean_f1": 0.5778753924861122,
+      "std_f1": 0.2407759857299029,
+      "mean_roc_auc": 0.4365275409106307,
+      "std_roc_auc": 0.13181311730065495,
+      "mean_brier_score": 0.34173492590586346,
+      "std_brier_score": 0.08069825322017689,
+      "mean_accuracy_lift": -0.19031476997578695,
+      "std_accuracy_lift": 0.1354396397611129,
+      "mean_overfit_gap": 0.3371322517596528,
+      "std_overfit_gap": 0.1768211738311105,
+      "mean_collapse": 0.25,
+      "std_collapse": 0.4330127018922193,
+      "fold_balanced_accuracy": [
+        0.5567587456130421,
+        0.42999409427540186,
+        0.34851567394432603,
+        0.5
+      ],
+      "fold_roc_auc": [
+        0.6229287897656515,
+        0.3450525055827553,
+        0.34160132738348514,
+        null
+      ],
+      "fold_brier_score": [
+        0.45421558888661706,
+        0.2687797253474123,
+        0.3022094962687191,
+        0.2103697022144111
+      ],
+      "fold_overfit_gap": [
+        0.5231751515244984,
+        0.21624466236317963,
+        0.4965370606215937,
+        0.1125721325293394
+      ]
+    },
+    "lightgbm": {
+      "mean_accuracy": 0.536751336287633,
+      "std_accuracy": 0.1542868541343638,
+      "mean_balanced_accuracy": 0.48025759919353617,
+      "std_balanced_accuracy": 0.057720988826256,
+      "mean_precision": 0.7493592066539183,
+      "std_precision": 0.13889691651480138,
+      "mean_recall": 0.5733589864916653,
+      "std_recall": 0.36438261324277166,
+      "mean_f1": 0.5667208503084603,
+      "std_f1": 0.253905992389323,
+      "mean_roc_auc": 0.479866507556484,
+      "std_roc_auc": 0.11845668055423603,
+      "mean_brier_score": 0.35941761593011384,
+      "std_brier_score": 0.08520150073366588,
+      "mean_accuracy_lift": -0.1801452784503632,
+      "std_accuracy_lift": 0.1326536249473342,
+      "mean_overfit_gap": 0.39907349819812554,
+      "std_overfit_gap": 0.17069701074255278,
+      "mean_collapse": 0.25,
+      "std_collapse": 0.4330127018922193,
+      "fold_balanced_accuracy": [
+        0.5659911694780935,
+        0.43100189035916825,
+        0.424037336936883,
+        0.5
+      ],
+      "fold_roc_auc": [
+        0.6436771198913166,
+        0.3675878542446077,
+        0.42833454853352776,
+        null
+      ],
+      "fold_brier_score": [
+        0.47609851239340495,
+        0.2750364324689216,
+        0.32711790292801485,
+        0.2124398240100191
+      ],
+      "fold_overfit_gap": [
+        0.5818448204068414,
+        0.27057477205473546,
+        0.5524362884201427,
+        0.19143811191078264
+      ]
+    }
+  },
+  "walk_forward_diagnosis": {
+    "warnings": [
+      "logistic_regression: unstable \u2014 std balanced_accuracy=0.096 across folds",
+      "random_forest: class collapse in 2/4 fold(s)",
+      "random_forest: overfitting \u2014 mean train-val accuracy gap=0.262",
+      "xgboost: class collapse in 1/4 fold(s)",
+      "xgboost: overfitting \u2014 mean train-val accuracy gap=0.337",
+      "lightgbm: class collapse in 1/4 fold(s)",
+      "lightgbm: overfitting \u2014 mean train-val accuracy gap=0.399"
+    ],
+    "errors": [],
+    "per_model": {
+      "logistic_regression": {
+        "collapse_count": 0,
+        "mean_overfit_gap": 0.019507035490198055,
+        "mean_roc_auc": 0.5920041792552051,
+        "std_balanced_accuracy": 0.09627905109763142,
+        "temporal_delta": 0.26973027755127776
+      },
+      "random_forest": {
+        "collapse_count": 2,
+        "mean_overfit_gap": 0.2622824971390454,
+        "mean_roc_auc": 0.6312280650835276,
+        "std_balanced_accuracy": 0.019435888184091733,
+        "temporal_delta": -0.047602739726027354
+      },
+      "xgboost": {
+        "collapse_count": 1,
+        "mean_overfit_gap": 0.3371322517596528,
+        "mean_roc_auc": 0.4365275409106307,
+        "std_balanced_accuracy": 0.07791945752941465,
+        "temporal_delta": -0.05675874561304206
+      },
+      "lightgbm": {
+        "collapse_count": 1,
+        "mean_overfit_gap": 0.39907349819812554,
+        "mean_roc_auc": 0.479866507556484,
+        "std_balanced_accuracy": 0.057720988826256,
+        "temporal_delta": -0.06599116947809347
+      }
+    }
+  },
+  "model_selection": {
+    "selected_model": "logistic_regression",
+    "selection_score": 0.4213067943740499,
+    "ranking": [
+      {
+        "rank": 1,
+        "model": "logistic_regression",
+        "score": 0.4213067943740499
+      }
+    ],
+    "selection_criteria": "score = 0.40*mean_roc_auc + 0.40*mean_balanced_accuracy - 0.10*mean_brier_score - 0.10*std_balanced_accuracy; models with class collapse in any fold are disqualified"
+  },
+  "final_test": {
+    "selected_model": "logistic_regression",
+    "metrics": {
+      "n": 2472,
+      "accuracy": 0.3919902912621359,
+      "balanced_accuracy": 0.43897591723294194,
+      "precision": 0.4037494284407865,
+      "recall": 0.8160813308687616,
+      "f1": 0.5402263689201591,
+      "roc_auc": 0.5362338594928123,
+      "brier_score": 0.44519699527314516,
+      "confusion_matrix": [
+        [
+          86,
+          1304
+        ],
+        [
+          199,
+          883
+        ]
+      ],
+      "confusion_labels": [
+        "BEARISH",
+        "BULLISH"
+      ],
+      "predicted_counts": {
+        "BULLISH": 2187,
+        "BEARISH": 285
+      },
+      "true_counts": {
+        "BEARISH": 1390,
+        "BULLISH": 1082
+      },
+      "class_collapse": false,
+      "majority_baseline_acc": 0.4377022653721683,
+      "accuracy_lift": -0.04571197411003236
+    },
+    "calibration": {
+      "brier_score": 0.44519699527314516,
+      "ece": 0.4661977198292632,
+      "reliability_fraction_positive": [
+        0.6875,
+        0.6479591836734694,
+        0.757396449704142,
+        0.2144469525959368,
+        0.4375
+      ],
+      "reliability_mean_predicted": [
+        0.1780143740520059,
+        0.3178205510159136,
+        0.5056215649303325,
+        0.7280366725733252,
+        0.9287085072361241
+      ],
+      "n_bins": 5
+    }
+  },
+  "majority_baseline": {
+    "train_val": {
+      "majority_class": "BULLISH",
+      "accuracy": 0.6422940623417951
+    },
+    "test": {
+      "majority_class": "BEARISH",
+      "accuracy": 0.5622977346278317
+    }
+  },
+  "leakage_tests": {
+    "test_after_train_val": true,
+    "no_shuffle": true,
+    "embargo_applied": true,
+    "future_in_features": false,
+    "features_unchanged": true,
+    "proba_in_unit_interval": true
+  },
+  "artifact_paths": {
+    "model": "G:\\AI_XAUUSD\\models\\xauusd_weekly\\logistic_regression_final.joblib",
+    "feature_schema": "G:\\AI_XAUUSD\\models\\xauusd_weekly\\feature_schema.json",
+    "label_definition": "G:\\AI_XAUUSD\\models\\xauusd_weekly\\label_definition.json",
+    "dataset_metadata": "G:\\AI_XAUUSD\\models\\xauusd_weekly\\dataset_metadata.json",
+    "training_config": "G:\\AI_XAUUSD\\models\\xauusd_weekly\\training_config.json",
+    "walk_forward_metrics": "G:\\AI_XAUUSD\\models\\xauusd_weekly\\walk_forward_metrics.json",
+    "final_metrics": "G:\\AI_XAUUSD\\models\\xauusd_weekly\\final_metrics.json",
+    "calibration": "G:\\AI_XAUUSD\\models\\xauusd_weekly\\calibration.json"
+  },
+  "errors": [],
+  "warnings": [
+    "logistic_regression: unstable \u2014 std balanced_accuracy=0.096 across folds",
+    "random_forest: class collapse in 2/4 fold(s)",
+    "random_forest: overfitting \u2014 mean train-val accuracy gap=0.262",
+    "xgboost: class collapse in 1/4 fold(s)",
+    "xgboost: overfitting \u2014 mean train-val accuracy gap=0.337",
+    "lightgbm: class collapse in 1/4 fold(s)",
+    "lightgbm: overfitting \u2014 mean train-val accuracy gap=0.399"
+  ],
+  "step2_features_sha256": "bcc8ab42b20a3b6421cc60ca173f5558332dca7e3fc991abc49ee646838ad429",
+  "finished_at": "2026-09-29T18:29:15"
+}

@@ -1,0 +1,14 @@
+{
+  "horizon": 24,
+  "threshold": 0.005,
+  "bullish_rule": "close[t+24] / close[t] - 1 >= +0.005",
+  "bearish_rule": "close[t+24] / close[t] - 1 <= -0.005",
+  "neutral_rule": "|return| < 0.005  -> NEUTRAL, excluded from training",
+  "future_use": "future_close used ONLY to compute target label, never as feature",
+  "bar_size": "H1 (1-hour)",
+  "pos_class": "BULLISH",
+  "class_names": [
+    "BEARISH",
+    "BULLISH"
+  ]
+}

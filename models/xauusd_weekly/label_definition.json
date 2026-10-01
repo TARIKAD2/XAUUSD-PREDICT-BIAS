@@ -1,0 +1,15 @@
+{
+  "horizon": 120,
+  "threshold": 0.01,
+  "bullish_rule": "close[t+120] / close[t] - 1 >= +0.01",
+  "bearish_rule": "close[t+120] / close[t] - 1 <= -0.01",
+  "neutral_rule": "|return| < 0.01  -> NEUTRAL, excluded from training",
+  "future_use": "future_close used ONLY to compute target label, never as feature",
+  "bar_size": "H1 (1-hour)",
+  "target_horizon": "120H (5-day forward)",
+  "pos_class": "BULLISH",
+  "class_names": [
+    "BEARISH",
+    "BULLISH"
+  ]
+}

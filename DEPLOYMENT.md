@@ -18,7 +18,7 @@ The platform consists of a FastAPI backend (Python) and a Next.js frontend (Reac
    - `ENVIRONMENT=production`
    - `MONGODB_URI`
    - `DATABASE_NAME`
-   - `MARKET_DATA_API_KEY`
+   - `TWELVE_DATA_API_KEY`
    - `API_CORS_ORIGINS=https://your-frontend-domain.vercel.app`
 6. Deploy and copy the provided HTTPS URL.
 
@@ -43,4 +43,3 @@ docker compose build
 docker compose up -d
 ```
 Make sure your `.env` file is populated.
-

@@ -1,0 +1,20 @@
+{
+  "fold_type": "expanding_window",
+  "n_folds": 5,
+  "min_fold_train": 3500,
+  "min_fold_val": 300,
+  "train_frac": 0.7,
+  "val_frac": 0.15,
+  "random_seed": 42,
+  "horizon": 24,
+  "threshold": 0.005,
+  "embargo": "future_timestamp < fold_val_start_timestamp",
+  "models_evaluated": [
+    "logistic_regression",
+    "random_forest",
+    "xgboost",
+    "lightgbm"
+  ],
+  "selected_model": "logistic_regression",
+  "selection_criteria": "score = 0.40*mean_roc_auc + 0.40*mean_balanced_accuracy - 0.10*mean_brier_score - 0.10*std_balanced_accuracy; models with class collapse in any fold are disqualified"
+}

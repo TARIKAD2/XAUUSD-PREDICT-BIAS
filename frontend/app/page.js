@@ -1,92 +1,309 @@
 "use client";
-import { useEffect, useState } from "react";
-import { api } from "../services/api";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useTranslation } from "../context/LanguageContext";
+import { api, POLLING_INTERVAL_MS } from "../services/api";
 import StatusPanel from "../components/StatusPanel";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import MarketCard from "../components/MarketCard";
+import PriceChart from "../components/PriceChart";
 import PredictionCard from "../components/PredictionCard";
-import NewsCard from "../components/NewsCard";
-import EconomicEventCard from "../components/EconomicEventCard";
+import TechnicalPanel from "../components/TechnicalPanel";
+import ScenarioPanel from "../components/ScenarioPanel";
+import ExplanationPanel from "../components/ExplanationPanel";
+import { liveMarket } from "../services/liveMarket";
 
-const assets = ["XAUUSD", "US100", "EURUSD", "DXY", "GBPUSD", "USDJPY"];
+const asset = "XAUUSD";
 
-function load(f, s) {
-  f().then(x => s({ data: x })).catch(e => s({ error: e }));
+function load(fetcher, setter) {
+  setter({ loading: true });
+  fetcher()
+    .then((data) => setter({ data, loading: false }))
+    .catch((error) => setter({ error, loading: false }));
+}
+
+function refreshData(fetcher, setter) {
+  return fetcher()
+    .then((data) => {
+      setter((prev) => ({ ...prev, data, error: null, loading: false }));
+    })
+    .catch((error) => {
+      setter((prev) => (prev.data ? prev : { error, loading: false }));
+    });
+}
+
+function statusLabel(t, value, fallbackKey = "online") {
+  const normalized = String(value || "").toLowerCase().replace(/[\s-]+/g, "_");
+  const keys = {
+    online: "online",
+    ok: "online",
+    healthy: "online",
+    connected: "connected",
+    connecting: "connecting",
+    reconnecting: "reconnecting",
+    offline: "offline",
+    stale: "stale",
+    fresh: "fresh",
+    nominal: "nominal",
+    degraded: "degraded",
+    error: "error",
+    good: "online",
+    valid: "fresh",
+  };
+  return t(`status.${keys[normalized] || fallbackKey}`);
+}
+
+function PanelContent({ title, state, empty, children }) {
+  const { t } = useTranslation();
+  if (state?.loading || (!state?.data && !state?.error)) {
+    return <StatusPanel title={title} message={t("status_panel.loading_telemetry")} />;
+  }
+  if (state?.error) {
+    return <StatusPanel title={title} message={state.error.message || t("status_panel.unavailable")} type="error" />;
+  }
+  if (empty) {
+    return <StatusPanel title={title} message={t("status_panel.no_records")} />;
+  }
+  return children;
 }
 
 export default function Home() {
-  const [a, setA] = useState("XAUUSD");
-  const [m, setM] = useState({});
-  const [n, setN] = useState({});
-  const [e, setE] = useState({});
-  const [p, setP] = useState({});
-  const [perf, setPerf] = useState({});
+  const { t, locale } = useTranslation();
+  const [health, setHealth] = useState({});
+  const [market, setMarket] = useState({});
+  const [detail, setDetail] = useState({});
+  const [prediction, setPrediction] = useState({});
+  const [predictionWeekly, setPredictionWeekly] = useState({});
+  const [predictionHorizon, setPredictionHorizon] = useState("daily");
+  const [explanation, setExplanation] = useState({});
+  const [liveTick, setLiveTick] = useState(null);
+  const [wsStatus, setWsStatus] = useState("CONNECTING");
 
+  const refreshingRef = useRef(false);
+
+  // Subscribe to WebSocket live tick stream
   useEffect(() => {
-    load(api.market, setM);
-    load(api.news, setN);
-    load(api.events, setE);
-    load(api.performance, setPerf);
-    load(() => api.prediction(a), setP);
-  }, [a]);
+    const unsubscribe = liveMarket.subscribe((tick, status) => {
+      if (status) {
+        setWsStatus(status);
+      }
+      if (tick && (tick.type === "price" || tick.event === "price" || tick.type === "initial_state")) {
+        const sym = (tick.symbol || tick.normalized_symbol || "").replace("/", "").toUpperCase();
+        if (sym === "XAUUSD") {
+          setLiveTick(tick);
+        }
+      }
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Polling refresher for background REST data
+  const refreshLive = useCallback(async () => {
+    if (refreshingRef.current) return;
+    if (typeof document !== "undefined" && document.hidden) return;
+    refreshingRef.current = true;
+    try {
+      await Promise.allSettled([
+        refreshData(api.market, setMarket),
+        refreshData(() => api.marketSymbol(asset), setDetail),
+        refreshData(() => api.prediction(asset), setPrediction),
+        refreshData(() => api.predictionWeekly(asset), setPredictionWeekly),
+        refreshData(() => api.explanation(asset), setExplanation),
+        refreshData(api.health, setHealth),
+      ]);
+    } finally {
+      refreshingRef.current = false;
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    load(api.health, setHealth);
+    load(api.market, setMarket);
+    load(() => api.marketSymbol(asset), setDetail);
+    load(() => api.prediction(asset), setPrediction);
+    load(() => api.predictionWeekly(asset), setPredictionWeekly);
+    load(() => api.explanation(asset), setExplanation);
+  }, []);
+
+  // Interval polling for background candles and predictions
+  useEffect(() => {
+    if (POLLING_INTERVAL_MS <= 0) return;
+    const intervalId = setInterval(() => {
+      refreshLive();
+    }, POLLING_INTERVAL_MS);
+    return () => clearInterval(intervalId);
+  }, [refreshLive]);
+
+  const selectedMarket = market.data?.items?.find((item) => item.symbol === asset);
+  const candles = detail.data?.candles || [];
+  const freshnessText = prediction.data?.data_quality || (selectedMarket ? (selectedMarket.is_stale ? "STALE" : "FRESH") : "NOMINAL");
 
   return (
-    <main className="container">
-      <header>
-        <h1>AI Market Intelligence</h1>
-        <p>Research only — no automatic execution or guaranteed outcomes.</p>
+    <main className="terminal-wrapper">
+      {/* Top Header Bar */}
+      <header className="terminal-header-bar">
+        <div className="brand-section">
+          <span className="brand-symbol-tag">XAU/USD</span>
+          <div className="brand-title-group">
+            <h1>
+              {t("brand.title")}
+              <span className="brand-subtitle">
+                {t("brand.subtitle")}
+              </span>
+            </h1>
+          </div>
+        </div>
+
+        <div className="header-tools">
+          <div className="system-status-ribbon">
+            <div className="status-chip good">
+              <span className="pulse-dot green" />
+              {t("status.api")}: <strong>{health.loading ? t("status.connecting") : statusLabel(t, health.data?.status)}</strong>
+            </div>
+            <div className="status-chip good">
+              <span className="pulse-dot green" />
+              {t("status.db")}: <strong>{statusLabel(t, health.data?.database?.status, "connected")}</strong>
+            </div>
+            <div className={`status-chip ${freshnessText === "STALE" ? "warn" : "good"}`}>
+              <span className={`pulse-dot ${freshnessText === "STALE" ? "amber" : "green"}`} />
+              {t("status.feed")}: <strong>{statusLabel(t, freshnessText, "nominal")}</strong>
+            </div>
+          </div>
+          <LanguageSwitcher />
+        </div>
       </header>
 
-      <section className="controls">
-        <label>Select Asset: </label>
-        <select value={a} onChange={x => setA(x.target.value)}>
-          {assets.map(x => <option key={x} value={x}>{x}</option>)}
-        </select>
-      </section>
-
-      <section className="dashboard-grid">
-        <div className="col">
-          <h2>AI Prediction</h2>
-          {p.data ? <PredictionCard prediction={p.data} /> : <StatusPanel title="AI Prediction" message={p.error?.message || "Loading…"} />}
-        </div>
-        <div className="col">
-          <h2>Model Performance</h2>
-          {perf.data ? <pre>{JSON.stringify(perf.data, null, 2)}</pre> : <StatusPanel title="Model Performance" message={perf.error?.message || "Loading performance…"} />}
-        </div>
-      </section>
-
-      <section>
-        <h2>Market Overview</h2>
-        {m.data ? (
-          <div className="grid">
-            {m.data.items?.map(x => <MarketCard key={x.symbol} item={x} />)}
+      {/* Main Grid Section */}
+      <div className="terminal-main-grid">
+        {/* Top Section: Price Hero & Chart (Left) + AI Directional Bias (Right) */}
+        <div className="terminal-top-row">
+          {/* Left: Hero Ticker & Professional Chart */}
+          <div className="t-panel">
+            <div className="t-panel-header">
+              <div className="t-panel-title">
+                <span className="accent-bar" />
+                <span>{t("market.execution_title")}</span>
+              </div>
+              <div className="t-panel-actions">
+                <span>{t("market.timeframe")}</span>
+                <span>&bull;</span>
+                <span>{t("market.spot_feed")}</span>
+              </div>
+            </div>
+            <div className="t-panel-body" style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <MarketCard
+                item={selectedMarket || { symbol: "XAUUSD", price: null }}
+                liveTick={liveTick}
+                wsStatus={wsStatus}
+              />
+              <PanelContent title={t("panels.price_chart")} state={detail} empty={!candles.length}>
+                <PriceChart candles={candles} symbol={asset} />
+              </PanelContent>
+            </div>
           </div>
-        ) : (
-          <StatusPanel title="Market data" message={m.error?.message || "Loading verified data…"} />
-        )}
-      </section>
 
-      <section className="dashboard-grid">
-        <div className="col">
-          <h2>News</h2>
-          {n.data ? (
-            <div className="grid-col">
-              {n.data.items?.map(x => <NewsCard key={x.url} item={x} />)}
+          {/* Right: AI Prediction & Bias Card */}
+          <div className="t-panel">
+            <div className="t-panel-header">
+              <div className="t-panel-title">
+                <span className="accent-bar" />
+                <span>{t("prediction.ai_forecast_title")}</span>
+              </div>
+              <div className="t-panel-actions">
+                <span>{t("prediction.inference_engine")}</span>
+              </div>
             </div>
-          ) : (
-            <StatusPanel title="News" message={n.error?.message || "Loading verified news…"} />
-          )}
-        </div>
-        <div className="col">
-          <h2>Economic Calendar</h2>
-          {e.data ? (
-            <div className="grid-col">
-              {e.data.items?.map((x, i) => <EconomicEventCard key={i} item={x} />)}
+            <div className="t-panel-body">
+              {(prediction.loading || (!prediction.data && !prediction.error)) ? (
+                <StatusPanel title={t("panels.ai_prediction")} message={t("status_panel.loading_telemetry")} />
+              ) : prediction.error && !prediction.data ? (
+                <StatusPanel title={t("panels.ai_prediction")} message={prediction.error.message || t("status_panel.unavailable")} type="error" />
+              ) : (
+                <PredictionCard
+                  predictionDaily={prediction.data || null}
+                  predictionWeekly={predictionWeekly.data || null}
+                  latestCandle={candles[candles.length - 1]}
+                  horizon={predictionHorizon}
+                  onHorizonChange={setPredictionHorizon}
+                />
+              )}
             </div>
-          ) : (
-            <StatusPanel title="Economic events" message={e.error?.message || "Loading verified events…"} />
-          )}
+          </div>
         </div>
-      </section>
+
+        {/* Middle Section: Technical Analysis, Probabilistic Scenarios, AI Explanation */}
+        <div className="terminal-middle-row">
+          {/* Technical Analysis */}
+          <div className="t-panel">
+            <div className="t-panel-header">
+              <div className="t-panel-title">
+                <span className="accent-bar" />
+                <span>{t("technicals.title")}</span>
+              </div>
+              <div className="t-panel-actions">
+                <span>{t("technicals.indicators_subtitle")}</span>
+              </div>
+            </div>
+            <div className="t-panel-body">
+              <PanelContent title={t("panels.technicals")} state={detail} empty={!candles.length}>
+                <TechnicalPanel candles={candles} symbol={asset} />
+              </PanelContent>
+            </div>
+          </div>
+
+          {/* Probabilistic Scenarios */}
+          <div className="t-panel">
+            <div className="t-panel-header">
+              <div className="t-panel-title">
+                <span className="accent-bar" />
+                <span>{t("scenarios.title")}</span>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    padding: "2px 7px",
+                    borderRadius: "4px",
+                    background: "rgba(212, 175, 55, 0.15)",
+                    color: "var(--gold-accent)",
+                    fontWeight: "700",
+                    marginLeft: "8px",
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {predictionHorizon === "weekly"
+                    ? (t("prediction.toggle_weekly") || "Weekly")
+                    : (t("prediction.toggle_daily") || "Daily")}
+                </span>
+              </div>
+              <div className="t-panel-actions">
+                <span>
+                  {predictionHorizon === "weekly"
+                    ? "H1 → 120H"
+                    : (t("scenarios.subtitle") || "H1 → 24H")}
+                </span>
+              </div>
+            </div>
+            <div className="t-panel-body">
+              <PanelContent
+                title={t("panels.scenarios")}
+                state={predictionHorizon === "weekly" ? predictionWeekly : prediction}
+                empty={!(predictionHorizon === "weekly" ? predictionWeekly.data?.scenarios : prediction.data?.scenarios)?.length}
+              >
+                <ScenarioPanel
+                  scenarios={
+                    (predictionHorizon === "weekly"
+                      ? predictionWeekly.data?.scenarios
+                      : prediction.data?.scenarios) || []
+                  }
+                />
+              </PanelContent>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   );
 }

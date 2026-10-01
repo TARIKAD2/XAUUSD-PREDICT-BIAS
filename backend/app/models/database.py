@@ -7,3 +7,10 @@ class DatabaseConnectionStatus(str, Enum):
     CONNECTED = "connected"
     NOT_CONFIGURED = "not_configured"
     UNAVAILABLE = "unavailable"
+
+class ModelRegistryStatus(str, Enum):
+    CANDIDATE = "candidate"
+    VALIDATED = "validated"
+    PRODUCTION = "production"
+    RETIRED = "retired"
+    FAILED = "failed"

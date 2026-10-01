@@ -37,10 +37,21 @@ def evaluate_advanced(df:pd.DataFrame,features:list[str],target:str,model_name:A
 def persist_model(result:AdvancedResult,path:Path,metadata:dict)->None:
     path.parent.mkdir(parents=True,exist_ok=True);joblib.dump({"model":result.model,"model_name":result.model_name,"metrics":result.metrics,"metadata":metadata},path)
 
-def shap_feature_contributions(result:AdvancedResult,row:pd.DataFrame,features:list[str])->list[dict[str,float|str]]:
-    calibrated=result.model.calibrated_classifiers_[0].estimator
-    values=shap.TreeExplainer(calibrated).shap_values(row[features])
-    array=np.asarray(values)
-    if array.ndim==3: array=array[0].mean(axis=1)
-    elif array.ndim==2: array=array[0]
-    return [{"feature":feature,"contribution":float(value)} for feature,value in sorted(zip(features,array),key=lambda item:abs(item[1]),reverse=True)]
+def shap_values_for_estimator(model, row: pd.DataFrame, features: list[str]) -> list[dict[str, float | str]]:
+    from app.ml.calibration import unwrap_calibrated_estimator
+
+    inner = unwrap_calibrated_estimator(model)
+    values = shap.TreeExplainer(inner).shap_values(row[features])
+    array = np.asarray(values)
+    if array.ndim == 3:
+        array = array[0].mean(axis=1)
+    elif array.ndim == 2:
+        array = array[0]
+    return [
+        {"feature": feature, "contribution": float(value)}
+        for feature, value in sorted(zip(features, array), key=lambda item: abs(item[1]), reverse=True)
+    ]
+
+
+def shap_feature_contributions(result: AdvancedResult, row: pd.DataFrame, features: list[str]) -> list[dict[str, float | str]]:
+    return shap_values_for_estimator(result.model, row, features)

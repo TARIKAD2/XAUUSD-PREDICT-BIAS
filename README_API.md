@@ -14,25 +14,24 @@ No researched free provider offers deep 1-minute history for all six assets, fin
 
 Legend: ✅ documented support; ⚠️ limited/plan-dependent; ❌ not supplied; ? exact entitlement or symbol not verified publicly.
 
-| Provider | Market | News | Calendar | XAUUSD | US100 | EURUSD | DXY | GBPUSD | USDJPY | Historical/intraday | Free limit | Key | Best use |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| [Twelve Data](https://twelvedata.com/pricing) | ✅ | ❌ | ❌ | ⚠️ `XAU/USD`; commodity access not Basic | ? | ✅ `EUR/USD` | ? | ✅ `GBP/USD` | ✅ `USD/JPY` | FX intraday; commodity/deep-history plan-dependent | 8 credits/min, 800/day | ✅ | Primary FX refresh |
-| [Alpha Vantage](https://www.alphavantage.co/documentation/) | ⚠️ | ✅ | ⚠️ economic indicators, not consensus calendar | ⚠️ `GOLD_SILVER_SPOT`/history, not XAUUSD candles | ⚠️ index history premium | ✅ `EUR`/`USD` | ? | ✅ `GBP`/`USD` | ✅ `USD`/`JPY` | FX intraday premium | 25/day | ✅ | Low-volume backup/research |
-| [Finnhub](https://finnhub.io/docs/api/quote) | ⚠️ | ✅ | ⚠️ premium | ? | ? | ⚠️ | ? | ⚠️ | ⚠️ | Free news one year; calendar premium | endpoint dependent | ✅ | News backup only |
-| [FMP](https://intelligence.financialmodelingprep.com/developer/docs/stable/financial-symbols-list) | ⚠️ | ⚠️ | ⚠️ | ? | ? | ? | ? | ? | ? | Entitlements/symbols require account verification | ⚠️ | ✅ | Evaluate later only |
-| [Marketstack](https://marketstack.com/pricing) | ⚠️ | ❌ | ❌ | ? | ⚠️ paid | ? | ? | ? | ? | Free EOD, 1-year; no free intraday | 100/month | ✅ | Not suitable primary |
-| [Marketaux](https://www.marketaux.com/pricing) | ❌ | ✅ | ❌ | ⚠️ entity relevance | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | Instant news; 3 articles/request | 100/day | ✅ | **Primary free financial news** |
-| [GNews](https://gnews.io/pricing) | ❌ | ⚠️ | ❌ | ⚠️ keyword | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | 12-hour delay, 30-day history | 100/day, dev/test/non-commercial | ✅ | General-news supplement |
-| [NewsAPI](https://newsapi.org/pricing) | ❌ | ⚠️ | ❌ | ⚠️ keyword | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ⚠️ | 24-hour delay, one month | 100/day, development only | ✅ | Local development only |
-| [FRED / ALFRED](https://fred.stlouisfed.org/docs/api/fred/) | ❌ | ❌ | ⚠️ releases and observations, not consensus | ❌ | ❌ | ❌ | ⚠️ series must be verified | ❌ | ❌ | Deep history, release dates, vintage data | API key | ✅ | **Primary macro history/revisions** |
-| [BLS](https://www.bls.gov/developers/api_faqs.htm) | ❌ | ❌ | ⚠️ published US data, not consensus | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Up to 20 years/query registered v2 | 500/day registered | ⚠️ | CPI, payrolls, unemployment |
-| [BEA](https://apps.bea.gov/api/_pdf/bea_web_service_api_user_guide.pdf) | ❌ | ❌ | ⚠️ published US data, not consensus | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Historical published data | API user ID | ✅ | GDP/PCE |
+| Provider | Market | News | Calendar | XAUUSD | Historical/intraday | Free limit | Key | Best use |
+|---|---|---|---|---|---|---|---|---|
+| [Twelve Data](https://twelvedata.com/pricing) | ✅ | ❌ | ❌ | ⚠️ `XAU/USD`; commodity access | FX/commodity intraday | 8 credits/min, 800/day | ✅ | Primary refresh |
+| [Alpha Vantage](https://www.alphavantage.co/documentation/) | ⚠️ | ✅ | ⚠️ economic indicators, not consensus calendar | ⚠️ `GOLD_SILVER_SPOT`/history, not XAUUSD candles | Intraday premium | 25/day | ✅ | Low-volume backup/research |
+| [Finnhub](https://finnhub.io/docs/api/quote) | ⚠️ | ✅ | ⚠️ premium | ? | Free news one year; calendar premium | endpoint dependent | ✅ | News backup only |
+| [FMP](https://intelligence.financialmodelingprep.com/developer/docs/stable/financial-symbols-list) | ⚠️ | ⚠️ | ⚠️ | ? | Entitlements/symbols require account verification | ⚠️ | ✅ | Evaluate later only |
+| [Marketstack](https://marketstack.com/pricing) | ⚠️ | ❌ | ❌ | ? | Free EOD, 1-year; no free intraday | 100/month | ✅ | Not suitable primary |
+| [Marketaux](https://www.marketaux.com/pricing) | ❌ | ✅ | ❌ | ⚠️ entity relevance | Instant news; 3 articles/request | 100/day | ✅ | **Primary free financial news** |
+| [GNews](https://gnews.io/pricing) | ❌ | ⚠️ | ❌ | ⚠️ keyword | 12-hour delay, 30-day history | 100/day, dev/test/non-commercial | ✅ | General-news supplement |
+| [NewsAPI](https://newsapi.org/pricing) | ❌ | ⚠️ | ❌ | ⚠️ keyword | 24-hour delay, one month | 100/day, development only | ✅ | Local development only |
+| [FRED / ALFRED](https://fred.stlouisfed.org/docs/api/fred/) | ❌ | ❌ | ⚠️ releases and observations, not consensus | ❌ | Deep history, release dates, vintage data | API key | ✅ | **Primary macro history/revisions** |
+| [BLS](https://www.bls.gov/developers/api_faqs.htm) | ❌ | ❌ | ⚠️ published US data, not consensus | ❌ | Up to 20 years/query registered v2 | 500/day registered | ⚠️ | CPI, payrolls, unemployment |
+| [BEA](https://apps.bea.gov/api/_pdf/bea_web_service_api_user_guide.pdf) | ❌ | ❌ | ⚠️ published US data, not consensus | ❌ | Historical published data | API user ID | ✅ | GDP/PCE |
 
 ### Verified vendor formats
 
-- Twelve Data publicly documents `XAU/USD`, `EUR/USD`, `GBP/USD`, `USD/JPY`. Do not send internal symbols such as `XAUUSD` to it.
-- Alpha Vantage documents pairs as `from_symbol=EUR&to_symbol=USD`; its `FX_INTRADAY` endpoint is premium.
-- `NDX` and `DXY` access/entitlement must be verified through the provider instrument search—this document does not assume them.
+- Twelve Data publicly documents `XAU/USD`. Do not send internal symbols such as `XAUUSD` to it.
+- Alpha Vantage documents pairs as `from_symbol=XAU&to_symbol=USD`; its `FX_INTRADAY` endpoint is premium.
 
 ## Scores / 10
 
@@ -105,16 +104,12 @@ Do not create Finnhub, Marketstack, GNews or NewsAPI accounts unless a confirmed
 ## `.env` and security
 
 ```env
-MARKET_DATA_PROVIDER=twelve_data
-MARKET_DATA_API_KEY=
-
-NEWS_PROVIDER=marketaux
-NEWS_API_KEY=
-
-ECONOMIC_CALENDAR_PROVIDER=fred_bls_bea
+TWELVE_DATA_API_KEY=
+MARKETAUX_API_KEY=
 FRED_API_KEY=
 BLS_API_KEY=
 BEA_API_KEY=
+EODHD_API_KEY=
 
 MONGODB_URI=
 DATABASE_NAME=ai_market_intelligence
@@ -126,7 +121,7 @@ Only backend collectors read keys. Never use `NEXT_PUBLIC_` for a secret, place 
 
 ### A. Best free market-data API
 
-**Twelve Data**, for eligible FX pairs, because its Basic plan documents 800 daily credits and real-time forex. It is not a complete six-market answer: validate US100/DXY and do not assume free XAUUSD commodity access.
+**Twelve Data**, because its Basic plan documents 800 daily credits and real-time quotes for `XAU/USD`.
 
 ### B. Best free news API
 

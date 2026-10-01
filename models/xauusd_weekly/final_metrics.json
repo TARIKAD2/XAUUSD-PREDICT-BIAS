@@ -1,0 +1,47 @@
+{
+  "selected_model": "logistic_regression",
+  "test_metrics": {
+    "n": 2472,
+    "accuracy": 0.3919902912621359,
+    "balanced_accuracy": 0.43897591723294194,
+    "precision": 0.4037494284407865,
+    "recall": 0.8160813308687616,
+    "f1": 0.5402263689201591,
+    "roc_auc": 0.5362338594928123,
+    "brier_score": 0.44519699527314516,
+    "confusion_matrix": [
+      [
+        86,
+        1304
+      ],
+      [
+        199,
+        883
+      ]
+    ],
+    "confusion_labels": [
+      "BEARISH",
+      "BULLISH"
+    ],
+    "predicted_counts": {
+      "BULLISH": 2187,
+      "BEARISH": 285
+    },
+    "true_counts": {
+      "BEARISH": 1390,
+      "BULLISH": 1082
+    },
+    "class_collapse": false,
+    "majority_baseline_acc": 0.4377022653721683,
+    "accuracy_lift": -0.04571197411003236
+  },
+  "fold_mean_test": {
+    "accuracy": 0.6102588702204947,
+    "balanced_accuracy": 0.5465214273106586,
+    "precision": 0.7508019852594271,
+    "recall": 0.6795281595660811,
+    "f1": 0.7062300112034641,
+    "roc_auc": 0.5920041792552051,
+    "brier_score": 0.24475543142532458
+  }
+}

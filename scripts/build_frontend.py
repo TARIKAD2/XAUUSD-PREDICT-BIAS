@@ -116,7 +116,7 @@ import PredictionCard from "../components/PredictionCard";
 import NewsCard from "../components/NewsCard";
 import EconomicEventCard from "../components/EconomicEventCard";
 
-const assets = ["XAUUSD", "US100", "EURUSD", "DXY", "GBPUSD", "USDJPY"];
+const assets = ["XAUUSD"];
 
 function load(f, s) {
   f().then(x => s({ data: x })).catch(e => s({ error: e }));

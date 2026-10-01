@@ -1,0 +1,15 @@
+{
+  "step2_features_sha256": "bcc8ab42b20a3b6421cc60ca173f5558332dca7e3fc991abc49ee646838ad429",
+  "total_labeled_rows": 14289,
+  "train_val_rows": 12114,
+  "test_rows": 2144,
+  "labeled_date_min": "2022-07-04 09:00:00",
+  "labeled_date_max": "2026-09-17 22:00:00",
+  "train_val_date_min": "2022-07-04 09:00:00",
+  "train_val_date_max": "2026-03-17 12:00:00",
+  "test_date_min": "2026-03-18 14:00:00",
+  "test_date_max": "2026-09-17 22:00:00",
+  "neutral_excluded": true,
+  "shuffle": false,
+  "chronological_order": true
+}

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from typing import Any
 
-from pymongo import AsyncMongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
 from pymongo.server_api import ServerApi
 
@@ -27,13 +28,18 @@ class MongoClientManager:
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
-        self._client: AsyncMongoClient | None = None
+        self._client: AsyncIOMotorClient | None = None
         self._database: Any | None = None
         self._status = DatabaseConnectionStatus.NOT_CONFIGURED
 
     @property
     def status(self) -> DatabaseConnectionStatus:
         return self._status
+
+    @property
+    def settings(self) -> Settings:
+        """Expose validated non-secret settings to application services."""
+        return self._settings
 
     @property
     def is_connected(self) -> bool:
@@ -57,11 +63,13 @@ class MongoClientManager:
             return False
 
         await self._close_client()
-        self._client = AsyncMongoClient(
+        self._client = AsyncIOMotorClient(
             uri,
             serverSelectionTimeoutMS=self._settings.mongodb_server_selection_timeout_ms,
             connectTimeoutMS=self._settings.mongodb_server_selection_timeout_ms,
             server_api=ServerApi(version="1", strict=True, deprecation_errors=True),
+            tz_aware=True,
+            tzinfo=UTC,
         )
         try:
             await self._client.admin.command("ping")
@@ -96,4 +104,6 @@ class MongoClientManager:
         client, self._client = self._client, None
         self._database = None
         if client is not None:
-            await client.close()
+            result = client.close()
+            if hasattr(result, "__await__"):
+                await result

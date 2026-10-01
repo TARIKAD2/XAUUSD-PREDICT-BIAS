@@ -6,6 +6,7 @@ from typing import Literal
 from app.models.database import DatabaseConnectionStatus
 
 from .base import APIModel
+from .worker import MarketWorkerStatus
 
 
 class DatabaseHealth(APIModel):
@@ -19,3 +20,4 @@ class HealthResponse(APIModel):
     environment: str
     timestamp: datetime
     database: DatabaseHealth
+    market_worker: MarketWorkerStatus | None = None

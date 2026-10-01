@@ -7,13 +7,19 @@ from typing import Any
 from pymongo import ASCENDING, DESCENDING, IndexModel
 
 from .collections import (
+    DATA_QUALITY,
+    DATASETS,
     ECONOMIC_EVENTS,
     FEATURES,
     MARKET_DATA,
+    MODEL_REGISTRY,
+    INGESTION_STATE,
     MODEL_METRICS,
+    MODEL_PERFORMANCE,
     NEWS,
     PREDICTIONS,
     SYSTEM_LOGS,
+    WAR_ROOMS,
 )
 
 
@@ -79,12 +85,58 @@ COLLECTION_INDEXES: dict[str, tuple[IndexModel, ...]] = {
             unique=True,
         ),
     ),
+    MODEL_PERFORMANCE: (
+        IndexModel(
+            [
+                ("symbol", ASCENDING),
+                ("model", ASCENDING),
+                ("model_version", ASCENDING),
+                ("testing_period_end", ASCENDING),
+            ],
+            name="model_performance_identity_unique",
+            unique=True,
+        ),
+    ),
+    MODEL_REGISTRY: (
+        IndexModel(
+            [("symbol", ASCENDING), ("timeframe", ASCENDING), ("status", ASCENDING)],
+            name="model_registry_active_lookup",
+        ),
+        IndexModel(
+            [("artifact_sha256", ASCENDING)],
+            name="model_registry_artifact_sha256_unique",
+            unique=True,
+        ),
+    ),
+    INGESTION_STATE: (
+        IndexModel(
+            [("symbol", ASCENDING), ("timeframe", ASCENDING)],
+            name="ingestion_state_symbol_timeframe_unique",
+            unique=True,
+        ),
+    ),
+    DATA_QUALITY: (
+        IndexModel(
+            [("symbol", ASCENDING), ("timeframe", ASCENDING), ("generated_at", DESCENDING)],
+            name="data_quality_symbol_timeframe_generated",
+        ),
+    ),
+    DATASETS: (
+        IndexModel(
+            [("symbol", ASCENDING), ("timeframe", ASCENDING), ("created_at", DESCENDING)],
+            name="datasets_symbol_timeframe_created",
+        ),
+    ),
     SYSTEM_LOGS: (
         IndexModel(
             [("timestamp", ASCENDING)],
             name="system_logs_ttl_90_days",
             expireAfterSeconds=60 * 60 * 24 * 90,
         ),
+    ),
+    WAR_ROOMS: (
+        IndexModel([("event_id", ASCENDING)], name="war_rooms_event_id_unique", unique=True),
+        IndexModel([("timestamp", DESCENDING)], name="war_rooms_timestamp_desc"),
     ),
 }
 

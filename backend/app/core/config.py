@@ -11,7 +11,11 @@ from pydantic import AliasChoices, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+# Locally the backend lives below the repository root. In the container the
+# backend is copied directly to /app, so use that directory instead of relying
+# on a fixed number of parents.
+PROJECT_ROOT = BACKEND_ROOT.parent if (BACKEND_ROOT.parent / ".env.example").exists() else BACKEND_ROOT
 VALID_LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
 
 
@@ -26,14 +30,35 @@ class Settings(BaseSettings):
     mongodb_uri: SecretStr | None = None
     database_name: str = Field(default="ai_market_intelligence", min_length=1, max_length=63)
     mongodb_server_selection_timeout_ms: int = Field(default=5000, ge=1000, le=60000)
-    market_data_api_key: SecretStr | None = None
     news_api_key: SecretStr | None = None
     economic_data_api_key: SecretStr | None = None
+    trading_economics_api_key: SecretStr | None = None
+    financecalendar_enabled: bool = True
+    financecalendar_base_url: str = "https://www.financecalendar.com/wp-json/fc/v1"
+    twelve_data_api_key: SecretStr | None = None
+    marketaux_api_key: SecretStr | None = None
+    fred_api_key: SecretStr | None = None
+    bea_api_key: SecretStr | None = None
+    eodhd_api_key: SecretStr | None = None
+    bls_api_key: SecretStr | None = None
     api_cors_origins: str = Field(
         default="http://localhost:3000",
         validation_alias=AliasChoices("API_CORS_ORIGINS", "CORS_ORIGINS"),
     )
     request_timeout_seconds: int = Field(default=15, ge=1, le=120)
+    models_dir: Path = Field(default=PROJECT_ROOT / "data" / "models")
+    model_schema_version: str = "1.0"
+    market_ingestion_enabled: bool = False
+    market_ingestion_interval_seconds: int = Field(default=3600, ge=60, le=86400)
+    market_ingestion_limit: int = Field(default=300, ge=2, le=5000)
+    market_ingestion_symbols: str = "XAUUSD"
+    market_ingestion_timeframe: str = "1h"
+
+    # Live market service configuration
+    live_reconnect_base_seconds: int = Field(default=1, ge=1, description="Base seconds for exponential backoff")
+    live_reconnect_max_seconds: int = Field(default=30, ge=1, description="Maximum backoff seconds")
+    live_freshness_live_sec: int = Field(default=5, ge=1, description="Freshness threshold for LIVE status (seconds)")
+    live_freshness_delayed_sec: int = Field(default=30, ge=1, description="Freshness threshold for DELAYED status (seconds)")
 
     model_config = SettingsConfigDict(
         env_file=PROJECT_ROOT / ".env",
@@ -99,6 +124,10 @@ class Settings(BaseSettings):
         if self.mongodb_uri is None:
             return None
         return self.mongodb_uri.get_secret_value()
+
+    @property
+    def ingestion_symbols(self) -> tuple[str, ...]:
+        return tuple(value.strip().upper() for value in self.market_ingestion_symbols.split(",") if value.strip())
 
 
 @lru_cache

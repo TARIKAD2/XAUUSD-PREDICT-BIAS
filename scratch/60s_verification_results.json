@@ -1,0 +1,278 @@
+{
+  "total_elapsed": 60.0072124004364,
+  "tick_count": 27,
+  "price_tick_count": 27,
+  "unique_prices_count": 3,
+  "first_tick": {
+    "index": 1,
+    "elapsed_sec": 2.08,
+    "type": "initial_state",
+    "symbol": "XAU/USD",
+    "price": 4354.45243,
+    "provider_time": "2026-09-17T19:03:00+00:00",
+    "received_at": "2026-09-17T19:03:19.831059+00:00",
+    "latency_ms": 19831
+  },
+  "last_tick": {
+    "index": 27,
+    "elapsed_sec": 59.73,
+    "type": "price",
+    "symbol": "XAU/USD",
+    "price": 4354.83169,
+    "provider_time": "2026-09-17T19:04:00+00:00",
+    "received_at": "2026-09-17T19:04:18.155503+00:00",
+    "latency_ms": 18155
+  },
+  "sample_ticks": [
+    {
+      "index": 1,
+      "elapsed_sec": 2.08,
+      "type": "initial_state",
+      "symbol": "XAU/USD",
+      "price": 4354.45243,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:19.831059+00:00",
+      "latency_ms": 19831
+    },
+    {
+      "index": 2,
+      "elapsed_sec": 2.36,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.64205,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:20.785635+00:00",
+      "latency_ms": 20785
+    },
+    {
+      "index": 3,
+      "elapsed_sec": 5.61,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.45243,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:24.032098+00:00",
+      "latency_ms": 24032
+    },
+    {
+      "index": 4,
+      "elapsed_sec": 7.42,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.64205,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:25.847306+00:00",
+      "latency_ms": 25847
+    },
+    {
+      "index": 5,
+      "elapsed_sec": 9.38,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.64205,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:27.805952+00:00",
+      "latency_ms": 27805
+    },
+    {
+      "index": 6,
+      "elapsed_sec": 13.47,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.64205,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:31.897212+00:00",
+      "latency_ms": 31897
+    },
+    {
+      "index": 7,
+      "elapsed_sec": 17.42,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.45243,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:35.846010+00:00",
+      "latency_ms": 35846
+    },
+    {
+      "index": 8,
+      "elapsed_sec": 20.19,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.45243,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:38.612362+00:00",
+      "latency_ms": 38612
+    },
+    {
+      "index": 9,
+      "elapsed_sec": 21.56,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:39.980341+00:00",
+      "latency_ms": 39980
+    },
+    {
+      "index": 10,
+      "elapsed_sec": 24.55,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.64205,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:42.976911+00:00",
+      "latency_ms": 42976
+    },
+    {
+      "index": 11,
+      "elapsed_sec": 26.12,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.64205,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:44.544566+00:00",
+      "latency_ms": 44544
+    },
+    {
+      "index": 12,
+      "elapsed_sec": 28.15,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:46.577317+00:00",
+      "latency_ms": 46577
+    },
+    {
+      "index": 13,
+      "elapsed_sec": 31.46,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.45243,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:49.887723+00:00",
+      "latency_ms": 49887
+    },
+    {
+      "index": 14,
+      "elapsed_sec": 34.23,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.45243,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:52.655524+00:00",
+      "latency_ms": 52655
+    },
+    {
+      "index": 15,
+      "elapsed_sec": 36.18,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:54.609407+00:00",
+      "latency_ms": 54609
+    },
+    {
+      "index": 16,
+      "elapsed_sec": 38.34,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:56.760465+00:00",
+      "latency_ms": 56760
+    },
+    {
+      "index": 17,
+      "elapsed_sec": 40.1,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.64205,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:58.521412+00:00",
+      "latency_ms": 58521
+    },
+    {
+      "index": 18,
+      "elapsed_sec": 41.41,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:03:00+00:00",
+      "received_at": "2026-09-17T19:03:59.833035+00:00",
+      "latency_ms": 59833
+    },
+    {
+      "index": 19,
+      "elapsed_sec": 44.12,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:04:00+00:00",
+      "received_at": "2026-09-17T19:04:02.543867+00:00",
+      "latency_ms": 2543
+    },
+    {
+      "index": 20,
+      "elapsed_sec": 46.15,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:04:00+00:00",
+      "received_at": "2026-09-17T19:04:04.572062+00:00",
+      "latency_ms": 4572
+    },
+    {
+      "index": 21,
+      "elapsed_sec": 47.28,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:04:00+00:00",
+      "received_at": "2026-09-17T19:04:05.702320+00:00",
+      "latency_ms": 5702
+    },
+    {
+      "index": 22,
+      "elapsed_sec": 49.21,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:04:00+00:00",
+      "received_at": "2026-09-17T19:04:07.636091+00:00",
+      "latency_ms": 7636
+    },
+    {
+      "index": 23,
+      "elapsed_sec": 51.35,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:04:00+00:00",
+      "received_at": "2026-09-17T19:04:09.774350+00:00",
+      "latency_ms": 9774
+    },
+    {
+      "index": 24,
+      "elapsed_sec": 53.29,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:04:00+00:00",
+      "received_at": "2026-09-17T19:04:11.711115+00:00",
+      "latency_ms": 11711
+    },
+    {
+      "index": 25,
+      "elapsed_sec": 55.67,
+      "type": "price",
+      "symbol": "XAU/USD",
+      "price": 4354.83169,
+      "provider_time": "2026-09-17T19:04:00+00:00",
+      "received_at": "2026-09-17T19:04:14.099433+00:00",
+      "latency_ms": 14099
+    }
+  ]
+}
