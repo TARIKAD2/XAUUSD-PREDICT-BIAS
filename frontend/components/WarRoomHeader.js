@@ -34,8 +34,37 @@ export default function WarRoomHeader({ eventData, liveTick, wsStatus }) {
     CONNECTED: t("status.connected"),
     CONNECTING: t("status.connecting"),
     RECONNECTING: t("status.reconnecting"),
+    DISCONNECTED: t("status.offline"),
   };
   const impactKey = imp.includes("high") ? "high" : imp.includes("med") ? "medium" : "low";
+
+  const provMs = (() => {
+    if (!liveTick) return null;
+    const ts = liveTick.provider_timestamp ?? liveTick.provider_time ?? liveTick.iso_timestamp ?? liveTick.timestamp;
+    if (ts == null) return null;
+    if (typeof ts === "number") return ts > 1e11 ? ts : ts * 1000;
+    if (typeof ts === "string") {
+      const parsed = new Date(ts).getTime();
+      return isNaN(parsed) ? null : parsed;
+    }
+    return null;
+  })();
+
+  const isConnected = wsStatus === "CONNECTED";
+  let feedStatus = "OFFLINE";
+  if (isConnected && provMs !== null) {
+    const ageSec = Math.max(0, Date.now() - provMs) / 1000;
+    if (ageSec < 5) feedStatus = "LIVE";
+    else if (ageSec <= 30) feedStatus = "DELAYED";
+    else feedStatus = "STALE";
+  }
+
+  const translatedFeedStatus = {
+    LIVE: t("status.live") || "LIVE",
+    DELAYED: t("status.delayed") || "DELAYED",
+    STALE: t("status.stale") || "STALE",
+    OFFLINE: t("status.offline") || "OFFLINE",
+  };
 
   return (
     <div className="war-room-header">
@@ -48,8 +77,8 @@ export default function WarRoomHeader({ eventData, liveTick, wsStatus }) {
             <span className="pulse-indicator" />
             {t("war_room.spot_live")}
           </span>
-          <span className={`live-status-pill ${wsStatus === "CONNECTED" ? "live" : "connecting"}`}>
-            {translatedStatus[wsStatus] || t("status.connecting")}
+          <span className={`live-status-pill ${feedStatus === "LIVE" ? "live" : feedStatus === "DELAYED" ? "warning" : "connecting"}`}>
+            {isConnected ? (translatedFeedStatus[feedStatus] || feedStatus) : (translatedStatus[wsStatus] || t("status.connecting"))}
           </span>
         </div>
       </div>

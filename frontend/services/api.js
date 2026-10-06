@@ -20,4 +20,5 @@ export const api = {
   events: (mode = "today") => get(`/api/economic-events?mode=${mode}`),
   performance: () => get("/api/model-performance"),
   quality: () => get("/api/data-quality"),
+  liveStatus: () => get("/api/market/live-status"),
 };

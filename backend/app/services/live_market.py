@@ -29,6 +29,68 @@ class ProviderState(str, Enum):
     DISCONNECTED = "DISCONNECTED"
 
 # ---------------------------------------------------------------------------
+# Timestamp parsing helpers
+# ---------------------------------------------------------------------------
+def _parse_provider_dt(provider_ts: Any) -> datetime | None:
+    if provider_ts is None:
+        return None
+    try:
+        if isinstance(provider_ts, (int, float)):
+            ts_sec = provider_ts / 1000.0 if provider_ts > 1e11 else float(provider_ts)
+            return datetime.fromtimestamp(ts_sec, tz=timezone.utc)
+        if isinstance(provider_ts, str):
+            clean = provider_ts.strip()
+            if not clean:
+                return None
+            if clean.isdigit():
+                val = float(clean)
+                ts_sec = val / 1000.0 if val > 1e11 else val
+                return datetime.fromtimestamp(ts_sec, tz=timezone.utc)
+            try:
+                val = float(clean)
+                ts_sec = val / 1000.0 if val > 1e11 else val
+                return datetime.fromtimestamp(ts_sec, tz=timezone.utc)
+            except ValueError:
+                pass
+            iso_str = clean.rstrip("Z")
+            if " " in iso_str and "T" not in iso_str:
+                iso_str = iso_str.replace(" ", "T")
+            dt = datetime.fromisoformat(iso_str)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            return dt
+    except Exception:
+        return None
+    return None
+
+def _parse_received_dt(received_at: Any) -> datetime | None:
+    if received_at is None:
+        return None
+    if isinstance(received_at, datetime):
+        if received_at.tzinfo is None:
+            return received_at.replace(tzinfo=timezone.utc)
+        return received_at.astimezone(timezone.utc)
+    if isinstance(received_at, str):
+        clean = received_at.strip()
+        if not clean:
+            return None
+        try:
+            iso_str = clean.rstrip("Z")
+            if " " in iso_str and "T" not in iso_str:
+                iso_str = iso_str.replace(" ", "T")
+            dt = datetime.fromisoformat(iso_str)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            return dt
+        except Exception:
+            return None
+    return None
+
+# ---------------------------------------------------------------------------
 # Service implementation
 # ---------------------------------------------------------------------------
 class LiveMarketService:
@@ -59,7 +121,7 @@ class LiveMarketService:
             "XAU/USD",
         ]
         for sym in self._supported_symbols:
-            self._symbol_status[sym] = SymbolStatus.WAITING_FOR_TICK
+            self._symbol_status[sym] = SymbolStatus.OFFLINE
 
     def _get_lock(self) -> asyncio.Lock:
         if self._lock is None:
@@ -119,7 +181,7 @@ class LiveMarketService:
         self._subscriber_queues.clear()
         self._latest_ticks.clear()
         for sym in self._supported_symbols:
-            self._symbol_status[sym] = SymbolStatus.WAITING_FOR_TICK
+            self._symbol_status[sym] = SymbolStatus.OFFLINE
 
     # ---------------------------------------------------------------------
     # Subscriber management (FastAPI WebSocket handlers)
@@ -172,29 +234,46 @@ class LiveMarketService:
 
             tick = None
             if raw_tick:
-                received_at = raw_tick.get("received_at")
-                if isinstance(received_at, str):
-                    try:
-                        received_at_dt = datetime.fromisoformat(received_at)
-                    except Exception:
-                        received_at_dt = now
-                elif isinstance(received_at, datetime):
-                    received_at_dt = received_at
-                else:
-                    received_at_dt = now
+                provider_ts = (
+                    raw_tick.get("provider_timestamp")
+                    or raw_tick.get("timestamp")
+                    or raw_tick.get("provider_time")
+                    or raw_tick.get("datetime")
+                )
+                prov_dt = _parse_provider_dt(provider_ts)
 
-                age = (now - received_at_dt).total_seconds()
-                if age <= self._settings.live_freshness_live_sec:
-                    status = SymbolStatus.LIVE
-                elif age <= self._settings.live_freshness_delayed_sec:
-                    status = SymbolStatus.DELAYED
+                received_at_val = raw_tick.get("received_at")
+                recv_dt = _parse_received_dt(received_at_val)
+
+                # Reference for freshness: latest provider tick timestamp
+                ref_dt = prov_dt or recv_dt
+
+                if ref_dt is not None:
+                    latency_ms = max(0, int((now - prov_dt).total_seconds() * 1000)) if prov_dt else None
+                    age_sec = (now - ref_dt).total_seconds()
+                    if age_sec < self._settings.live_freshness_live_sec:
+                        status = SymbolStatus.LIVE
+                    elif age_sec <= self._settings.live_freshness_delayed_sec:
+                        status = SymbolStatus.DELAYED
+                    else:
+                        status = SymbolStatus.STALE
                 else:
+                    latency_ms = None
                     status = SymbolStatus.STALE
 
-                tick = {k: v for k, v in raw_tick.items() if k != "received_at"}
-                tick["received_at"] = received_at_dt.isoformat()
+                tick = dict(raw_tick)
+                tick["latency_ms"] = latency_ms
+                if recv_dt:
+                    tick["received_at"] = recv_dt.isoformat()
+                if prov_dt:
+                    tick["provider_time"] = prov_dt.isoformat()
+            else:
+                # No tick received yet: CONNECTED alone never produces LIVE
+                if status != SymbolStatus.UNAVAILABLE:
+                    status = SymbolStatus.OFFLINE
 
-            if provider_state == ProviderState.DISCONNECTED.value and status != SymbolStatus.UNAVAILABLE:
+            # If provider is not connected, status cannot be LIVE/DELAYED/STALE
+            if provider_state != ProviderState.CONNECTED.value and status != SymbolStatus.UNAVAILABLE:
                 status = SymbolStatus.OFFLINE
 
             result["symbols"][sym] = {
@@ -318,29 +397,20 @@ class LiveMarketService:
 
             now = datetime.now(timezone.utc)
             provider_ts = msg.get("timestamp") or msg.get("datetime")
-            provider_iso = None
-            latency_ms = None
+            prov_dt = _parse_provider_dt(provider_ts)
+            provider_iso = prov_dt.isoformat() if prov_dt else (str(provider_ts) if provider_ts is not None else None)
+            latency_ms = max(0, int((now - prov_dt).total_seconds() * 1000)) if prov_dt else None
 
-            if provider_ts is not None:
-                try:
-                    if isinstance(provider_ts, (int, float)):
-                        ts_sec = provider_ts / 1000.0 if provider_ts > 1e11 else float(provider_ts)
-                        prov_dt = datetime.fromtimestamp(ts_sec, tz=timezone.utc)
-                        provider_iso = prov_dt.isoformat()
-                        latency_ms = max(0, int((now - prov_dt).total_seconds() * 1000))
-                    elif isinstance(provider_ts, str):
-                        if provider_ts.isdigit():
-                            val = float(provider_ts)
-                            ts_sec = val / 1000.0 if val > 1e11 else val
-                            prov_dt = datetime.fromtimestamp(ts_sec, tz=timezone.utc)
-                            provider_iso = prov_dt.isoformat()
-                            latency_ms = max(0, int((now - prov_dt).total_seconds() * 1000))
-                        else:
-                            prov_dt = datetime.fromisoformat(provider_ts.rstrip("Z")).replace(tzinfo=timezone.utc)
-                            provider_iso = prov_dt.isoformat()
-                            latency_ms = max(0, int((now - prov_dt).total_seconds() * 1000))
-                except Exception:
-                    provider_iso = str(provider_ts)
+            if prov_dt is not None:
+                age_sec = (now - prov_dt).total_seconds()
+                if age_sec < self._settings.live_freshness_live_sec:
+                    status = SymbolStatus.LIVE
+                elif age_sec <= self._settings.live_freshness_delayed_sec:
+                    status = SymbolStatus.DELAYED
+                else:
+                    status = SymbolStatus.STALE
+            else:
+                status = SymbolStatus.STALE
 
             raw_price = msg.get("price") if "price" in msg and msg.get("price") is not None else msg.get("value")
 
@@ -352,13 +422,13 @@ class LiveMarketService:
                 "price": raw_price,
                 "provider_timestamp": provider_ts,
                 "provider_time": provider_iso,
-                "iso_timestamp": provider_iso or str(provider_ts),
+                "iso_timestamp": provider_iso or (str(provider_ts) if provider_ts is not None else None),
                 "received_at": now.isoformat(),
                 "latency_ms": latency_ms,
             }
 
             self._latest_ticks[sym] = tick
-            self._symbol_status[sym] = SymbolStatus.LIVE
+            self._symbol_status[sym] = status
             await self._broadcast_tick(tick)
 
     async def _broadcast_tick(self, tick: Dict[str, Any]) -> None:

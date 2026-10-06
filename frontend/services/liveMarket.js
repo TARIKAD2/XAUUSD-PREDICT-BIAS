@@ -63,10 +63,13 @@ class LiveMarketClient {
         const rawData = JSON.parse(event.data);
         const browserNow = Date.now();
 
+        const isInitialState = rawData.type === 'initial_state' || rawData.event === 'initial_state';
         // Calculate fine-grained latency metrics
         const tick = {
           ...rawData,
-          browser_received_at: new Date(browserNow).toISOString(),
+          browser_received_at: isInitialState
+            ? (rawData.received_at || new Date(browserNow).toISOString())
+            : new Date(browserNow).toISOString(),
         };
 
         if (rawData.received_at) {

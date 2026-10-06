@@ -20,6 +20,7 @@
     "live": "DIRECT",
     "reconnecting": "RECONNEXION",
     "degraded": "DÉGRADÉ",
+    "delayed": "DIFFÉRÉ",
     "error": "ERREUR"
   },
   "market": {
@@ -30,6 +31,7 @@
     "live_ws": "Twelve Data WebSocket en Direct",
     "verified_h1": "Bougie H1 Vérifiée",
     "pts": "pts",
+    "feed_status": "État du Flux",
     "tick_latency": "Latence du Tick",
     "provider_time": "Heure Fournisseur",
     "ws_received": "Reçu WS",

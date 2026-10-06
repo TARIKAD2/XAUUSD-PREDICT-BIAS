@@ -20,6 +20,7 @@
     "live": "LIVE",
     "reconnecting": "RECONNECTING",
     "degraded": "DEGRADED",
+    "delayed": "DELAYED",
     "error": "ERROR"
   },
   "market": {
@@ -30,6 +31,7 @@
     "live_ws": "Twelve Data Live WebSocket",
     "verified_h1": "Verified H1 Candle",
     "pts": "pts",
+    "feed_status": "Feed Status",
     "tick_latency": "Tick Latency",
     "provider_time": "Provider Time",
     "ws_received": "WS Received",

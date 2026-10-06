@@ -378,6 +378,31 @@ html, body {
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
+  text-transform: uppercase;
+}
+
+.hero-live-badge.live {
+  background: var(--bullish-bg);
+  border-color: var(--bullish-border);
+  color: var(--bullish);
+}
+
+.hero-live-badge.delayed {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--warning);
+}
+
+.hero-live-badge.stale {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.hero-live-badge.offline {
+  background: var(--bearish-bg);
+  border-color: var(--bearish-border);
+  color: var(--bearish);
 }
 
 .hero-price-row {
@@ -410,8 +435,14 @@ html, body {
 
 .hero-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .hero-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 640px) {

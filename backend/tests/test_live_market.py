@@ -151,3 +151,68 @@ def test_websocket_endpoint():
         received = websocket.receive_json()
         assert received["symbol"] == "XAU/USD"
         assert received["price"] == "4300"
+
+def test_connected_alone_never_produces_live():
+    """Verify that WS/provider CONNECTED alone without recent tick returns OFFLINE, never LIVE."""
+    live_market_service._provider_state = "CONNECTED"
+    live_market_service._latest_ticks = {}
+    status = live_market_service.get_status()
+    assert status["provider_state"] == "CONNECTED"
+    sym_info = status["symbols"]["XAU/USD"]
+    assert sym_info["status"] == "OFFLINE"
+    assert sym_info["latest_tick"] is None
+
+def test_stale_tick_produces_stale():
+    """Verify that a tick older than 30 seconds produces STALE and truthful latency."""
+    now = datetime.now(timezone.utc)
+    stale_prov_ts = (now - timedelta(seconds=45)).isoformat()
+    recv_ts = (now - timedelta(seconds=44)).isoformat()
+    live_market_service._provider_state = "CONNECTED"
+    live_market_service._latest_ticks = {
+        "XAU/USD": {
+            "symbol": "XAU/USD",
+            "price": "4300.00",
+            "provider_timestamp": stale_prov_ts,
+            "received_at": recv_ts,
+        }
+    }
+    status = live_market_service.get_status()
+    sym_info = status["symbols"]["XAU/USD"]
+    assert sym_info["status"] == "STALE"
+    assert sym_info["latest_tick"]["latency_ms"] >= 40000
+    assert sym_info["latest_tick"]["provider_timestamp"] == stale_prov_ts
+    assert sym_info["latest_tick"]["received_at"] == recv_ts
+
+def test_delayed_tick_produces_delayed():
+    """Verify that a tick between 5 and 30 seconds produces DELAYED."""
+    now = datetime.now(timezone.utc)
+    delayed_prov_ts = (now - timedelta(seconds=12)).isoformat()
+    live_market_service._provider_state = "CONNECTED"
+    live_market_service._latest_ticks = {
+        "XAU/USD": {
+            "symbol": "XAU/USD",
+            "price": "4300.00",
+            "provider_timestamp": delayed_prov_ts,
+            "received_at": delayed_prov_ts,
+        }
+    }
+    status = live_market_service.get_status()
+    sym_info = status["symbols"]["XAU/USD"]
+    assert sym_info["status"] == "DELAYED"
+    assert 10000 <= sym_info["latest_tick"]["latency_ms"] <= 15000
+
+def test_disconnected_provider_produces_offline():
+    """Verify that DISCONNECTED provider state forces OFFLINE even with recent tick."""
+    now_iso = datetime.now(timezone.utc).isoformat()
+    live_market_service._provider_state = "DISCONNECTED"
+    live_market_service._latest_ticks = {
+        "XAU/USD": {
+            "symbol": "XAU/USD",
+            "price": "4300.00",
+            "provider_timestamp": now_iso,
+            "received_at": now_iso,
+        }
+    }
+    status = live_market_service.get_status()
+    sym_info = status["symbols"]["XAU/USD"]
+    assert sym_info["status"] == "OFFLINE"

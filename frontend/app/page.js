@@ -31,27 +31,6 @@ function refreshData(fetcher, setter) {
     });
 }
 
-function statusLabel(t, value, fallbackKey = "online") {
-  const normalized = String(value || "").toLowerCase().replace(/[\s-]+/g, "_");
-  const keys = {
-    online: "online",
-    ok: "online",
-    healthy: "online",
-    connected: "connected",
-    connecting: "connecting",
-    reconnecting: "reconnecting",
-    offline: "offline",
-    stale: "stale",
-    fresh: "fresh",
-    nominal: "nominal",
-    degraded: "degraded",
-    error: "error",
-    good: "online",
-    valid: "fresh",
-  };
-  return t(`status.${keys[normalized] || fallbackKey}`);
-}
-
 function PanelContent({ title, state, empty, children }) {
   const { t } = useTranslation();
   if (state?.loading || (!state?.data && !state?.error)) {
@@ -68,7 +47,6 @@ function PanelContent({ title, state, empty, children }) {
 
 export default function Home() {
   const { t, locale } = useTranslation();
-  const [health, setHealth] = useState({});
   const [market, setMarket] = useState({});
   const [detail, setDetail] = useState({});
   const [prediction, setPrediction] = useState({});
@@ -110,7 +88,26 @@ export default function Home() {
         refreshData(() => api.prediction(asset), setPrediction),
         refreshData(() => api.predictionWeekly(asset), setPredictionWeekly),
         refreshData(() => api.explanation(asset), setExplanation),
-        refreshData(api.health, setHealth),
+        api.liveStatus().then((res) => {
+          if (res?.symbols) {
+            const xau = res.symbols["XAU/USD"] || res.symbols["XAUUSD"];
+            if (xau?.latest_tick) {
+              setLiveTick((prev) => {
+                if (!prev) return xau.latest_tick;
+                const parseTs = (t) => {
+                  const val = t?.provider_timestamp ?? t?.provider_time ?? t?.timestamp;
+                  if (typeof val === "number") return val > 1e11 ? val : val * 1000;
+                  if (typeof val === "string") {
+                    const parsed = new Date(val).getTime();
+                    return isNaN(parsed) ? 0 : parsed;
+                  }
+                  return 0;
+                };
+                return parseTs(xau.latest_tick) >= parseTs(prev) ? xau.latest_tick : prev;
+              });
+            }
+          }
+        }).catch(() => {}),
       ]);
     } finally {
       refreshingRef.current = false;
@@ -119,12 +116,19 @@ export default function Home() {
 
   // Initial load
   useEffect(() => {
-    load(api.health, setHealth);
     load(api.market, setMarket);
     load(() => api.marketSymbol(asset), setDetail);
     load(() => api.prediction(asset), setPrediction);
     load(() => api.predictionWeekly(asset), setPredictionWeekly);
     load(() => api.explanation(asset), setExplanation);
+    api.liveStatus().then((res) => {
+      if (res?.symbols) {
+        const xau = res.symbols["XAU/USD"] || res.symbols["XAUUSD"];
+        if (xau?.latest_tick) {
+          setLiveTick((prev) => prev || xau.latest_tick);
+        }
+      }
+    }).catch(() => {});
   }, []);
 
   // Interval polling for background candles and predictions
@@ -138,7 +142,6 @@ export default function Home() {
 
   const selectedMarket = market.data?.items?.find((item) => item.symbol === asset);
   const candles = detail.data?.candles || [];
-  const freshnessText = prediction.data?.data_quality || (selectedMarket ? (selectedMarket.is_stale ? "STALE" : "FRESH") : "NOMINAL");
 
   return (
     <main className="terminal-wrapper">
@@ -157,20 +160,6 @@ export default function Home() {
         </div>
 
         <div className="header-tools">
-          <div className="system-status-ribbon">
-            <div className="status-chip good">
-              <span className="pulse-dot green" />
-              {t("status.api")}: <strong>{health.loading ? t("status.connecting") : statusLabel(t, health.data?.status)}</strong>
-            </div>
-            <div className="status-chip good">
-              <span className="pulse-dot green" />
-              {t("status.db")}: <strong>{statusLabel(t, health.data?.database?.status, "connected")}</strong>
-            </div>
-            <div className={`status-chip ${freshnessText === "STALE" ? "warn" : "good"}`}>
-              <span className={`pulse-dot ${freshnessText === "STALE" ? "amber" : "green"}`} />
-              {t("status.feed")}: <strong>{statusLabel(t, freshnessText, "nominal")}</strong>
-            </div>
-          </div>
           <LanguageSwitcher />
         </div>
       </header>
