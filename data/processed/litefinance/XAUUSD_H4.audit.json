@@ -1,0 +1,81 @@
+{
+  "timeframe": "H4",
+  "raw_path": "G:\\AI_XAUUSD\\data\\raw\\litefinance\\XAUUSD_H4_LiteFinance.csv",
+  "processed_path": "G:\\AI_XAUUSD\\data\\processed\\litefinance\\XAUUSD_H4.csv",
+  "raw_sha256": "bb13c66c932e1cc45b33e7786e53c573cb59e1d47802cb931c0a3bcccb20a39c",
+  "raw_rows": 43333,
+  "processed_rows": 27805,
+  "date_min": "2009-01-01 00:00:00",
+  "date_max": "2026-09-18 20:00:00",
+  "removed": {
+    "unparseable_timestamp": 0,
+    "out_of_scope": 15528,
+    "duplicate_timestamp": 0,
+    "null_required": 0,
+    "non_positive_price": 0,
+    "price_out_of_range": 0,
+    "ohlc_invalid": 0,
+    "negative_tick_volume": 0,
+    "negative_spread": 0,
+    "misaligned_timeframe": 0
+  },
+  "warnings": [
+    "H4: set 34 corrupt real_volume values (>= 1000000000) to 0",
+    "H4: 3 bars have spread > 1000 (kept)",
+    "H4: 6120 bars have spread=0 (kept; common on older LiteFinance exports)",
+    "H4: 17818/27805 bars have real_volume=0 (kept; tick_volume is the activity field)",
+    "H4: preserved 1373 real gaps (weekend-like=552, >3d=12)"
+  ],
+  "errors": [],
+  "gap_stats": {
+    "expected_delta": "0 days 04:00:00",
+    "gap_count": 1373,
+    "weekend_like_gaps": 552,
+    "gaps_over_3_days": 12,
+    "max_gap": "3 days 04:00:00",
+    "examples": [
+      {
+        "from": "2013-03-28 20:00:00",
+        "to": "2013-04-01 00:00:00",
+        "hours": 76.0
+      },
+      {
+        "from": "2020-12-24 20:00:00",
+        "to": "2020-12-28 00:00:00",
+        "hours": 76.0
+      },
+      {
+        "from": "2020-12-31 20:00:00",
+        "to": "2021-01-04 00:00:00",
+        "hours": 76.0
+      },
+      {
+        "from": "2021-12-23 20:00:00",
+        "to": "2021-12-27 00:00:00",
+        "hours": 76.0
+      },
+      {
+        "from": "2022-12-23 20:00:00",
+        "to": "2022-12-27 00:00:00",
+        "hours": 76.0
+      },
+      {
+        "from": "2022-12-30 20:00:00",
+        "to": "2023-01-03 00:00:00",
+        "hours": 76.0
+      },
+      {
+        "from": "2023-04-06 20:00:00",
+        "to": "2023-04-10 00:00:00",
+        "hours": 76.0
+      },
+      {
+        "from": "2023-12-22 20:00:00",
+        "to": "2023-12-26 00:00:00",
+        "hours": 76.0
+      }
+    ]
+  },
+  "never_modified_raw": true,
+  "never_created_candles": true
+}

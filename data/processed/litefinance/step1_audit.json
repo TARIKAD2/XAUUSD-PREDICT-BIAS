@@ -1,0 +1,258 @@
+{
+  "step": 1,
+  "started_at": "2026-09-29T20:22:29",
+  "finished_at": "2026-09-29T20:22:33",
+  "source": "litefinance",
+  "symbol": "XAUUSD",
+  "raw_untouched": true,
+  "candles_synthesized": false,
+  "timeframes": [
+    {
+      "timeframe": "H1",
+      "raw_path": "G:\\AI_XAUUSD\\data\\raw\\litefinance\\XAUUSD_H1_LiteFinance.csv",
+      "processed_path": "G:\\AI_XAUUSD\\data\\processed\\litefinance\\XAUUSD_H1.csv",
+      "raw_sha256": "b5c2789404416acf7e7b8176f2dbe7e8005f5138ec6e0518e01af01f7d579d65",
+      "raw_rows": 100000,
+      "processed_rows": 100000,
+      "date_min": "2009-11-17 09:00:00",
+      "date_max": "2026-09-18 23:00:00",
+      "removed": {
+        "unparseable_timestamp": 0,
+        "out_of_scope": 0,
+        "duplicate_timestamp": 0,
+        "null_required": 0,
+        "non_positive_price": 0,
+        "price_out_of_range": 0,
+        "ohlc_invalid": 0,
+        "negative_tick_volume": 0,
+        "negative_spread": 0,
+        "misaligned_timeframe": 0
+      },
+      "warnings": [
+        "H1: set 34 corrupt real_volume values (>= 1000000000) to 0",
+        "H1: 12 bars have spread > 1000 (kept)",
+        "H1: 14495 bars have spread=0 (kept; common on older LiteFinance exports)",
+        "H1: 64688/100000 bars have real_volume=0 (kept; tick_volume is the activity field)",
+        "H1: first bar is 2009-11-17 09:00:00 while requested start is 2009-01-01 (raw export does not cover the full window; candles were not synthesized)",
+        "H1: raw file has 100000 rows (MetaTrader export cap is often 100000); history may be truncated",
+        "H1: preserved 4338 real gaps (weekend-like=509, >3d=12)"
+      ],
+      "errors": [],
+      "gap_stats": {
+        "expected_delta": "0 days 01:00:00",
+        "gap_count": 4338,
+        "weekend_like_gaps": 509,
+        "gaps_over_3_days": 12,
+        "max_gap": "3 days 05:00:00",
+        "examples": [
+          {
+            "from": "2020-12-24 20:00:00",
+            "to": "2020-12-28 01:00:00",
+            "hours": 77.0
+          },
+          {
+            "from": "2024-03-28 22:00:00",
+            "to": "2024-04-01 01:00:00",
+            "hours": 75.0
+          },
+          {
+            "from": "2013-03-28 23:00:00",
+            "to": "2013-04-01 01:00:00",
+            "hours": 74.0
+          },
+          {
+            "from": "2020-12-31 23:00:00",
+            "to": "2021-01-04 01:00:00",
+            "hours": 74.0
+          },
+          {
+            "from": "2021-12-23 23:00:00",
+            "to": "2021-12-27 01:00:00",
+            "hours": 74.0
+          },
+          {
+            "from": "2022-12-23 23:00:00",
+            "to": "2022-12-27 01:00:00",
+            "hours": 74.0
+          },
+          {
+            "from": "2022-12-30 23:00:00",
+            "to": "2023-01-03 01:00:00",
+            "hours": 74.0
+          },
+          {
+            "from": "2023-04-06 23:00:00",
+            "to": "2023-04-10 01:00:00",
+            "hours": 74.0
+          }
+        ]
+      },
+      "never_modified_raw": true,
+      "never_created_candles": true
+    },
+    {
+      "timeframe": "H4",
+      "raw_path": "G:\\AI_XAUUSD\\data\\raw\\litefinance\\XAUUSD_H4_LiteFinance.csv",
+      "processed_path": "G:\\AI_XAUUSD\\data\\processed\\litefinance\\XAUUSD_H4.csv",
+      "raw_sha256": "bb13c66c932e1cc45b33e7786e53c573cb59e1d47802cb931c0a3bcccb20a39c",
+      "raw_rows": 43333,
+      "processed_rows": 27805,
+      "date_min": "2009-01-01 00:00:00",
+      "date_max": "2026-09-18 20:00:00",
+      "removed": {
+        "unparseable_timestamp": 0,
+        "out_of_scope": 15528,
+        "duplicate_timestamp": 0,
+        "null_required": 0,
+        "non_positive_price": 0,
+        "price_out_of_range": 0,
+        "ohlc_invalid": 0,
+        "negative_tick_volume": 0,
+        "negative_spread": 0,
+        "misaligned_timeframe": 0
+      },
+      "warnings": [
+        "H4: set 34 corrupt real_volume values (>= 1000000000) to 0",
+        "H4: 3 bars have spread > 1000 (kept)",
+        "H4: 6120 bars have spread=0 (kept; common on older LiteFinance exports)",
+        "H4: 17818/27805 bars have real_volume=0 (kept; tick_volume is the activity field)",
+        "H4: preserved 1373 real gaps (weekend-like=552, >3d=12)"
+      ],
+      "errors": [],
+      "gap_stats": {
+        "expected_delta": "0 days 04:00:00",
+        "gap_count": 1373,
+        "weekend_like_gaps": 552,
+        "gaps_over_3_days": 12,
+        "max_gap": "3 days 04:00:00",
+        "examples": [
+          {
+            "from": "2013-03-28 20:00:00",
+            "to": "2013-04-01 00:00:00",
+            "hours": 76.0
+          },
+          {
+            "from": "2020-12-24 20:00:00",
+            "to": "2020-12-28 00:00:00",
+            "hours": 76.0
+          },
+          {
+            "from": "2020-12-31 20:00:00",
+            "to": "2021-01-04 00:00:00",
+            "hours": 76.0
+          },
+          {
+            "from": "2021-12-23 20:00:00",
+            "to": "2021-12-27 00:00:00",
+            "hours": 76.0
+          },
+          {
+            "from": "2022-12-23 20:00:00",
+            "to": "2022-12-27 00:00:00",
+            "hours": 76.0
+          },
+          {
+            "from": "2022-12-30 20:00:00",
+            "to": "2023-01-03 00:00:00",
+            "hours": 76.0
+          },
+          {
+            "from": "2023-04-06 20:00:00",
+            "to": "2023-04-10 00:00:00",
+            "hours": 76.0
+          },
+          {
+            "from": "2023-12-22 20:00:00",
+            "to": "2023-12-26 00:00:00",
+            "hours": 76.0
+          }
+        ]
+      },
+      "never_modified_raw": true,
+      "never_created_candles": true
+    },
+    {
+      "timeframe": "M15",
+      "raw_path": "G:\\AI_XAUUSD\\data\\raw\\litefinance\\XAUUSD_M15.csv",
+      "processed_path": "G:\\AI_XAUUSD\\data\\processed\\litefinance\\XAUUSD_M15.csv",
+      "raw_sha256": "56bcb71b2a3b940b21a07d3fcbccd88d6d8fda871fd889984223aabfa8eab8d9",
+      "raw_rows": 100000,
+      "processed_rows": 100000,
+      "date_min": "2022-07-01 05:45:00",
+      "date_max": "2026-09-18 23:45:00",
+      "removed": {
+        "unparseable_timestamp": 0,
+        "out_of_scope": 0,
+        "duplicate_timestamp": 0,
+        "null_required": 0,
+        "non_positive_price": 0,
+        "price_out_of_range": 0,
+        "ohlc_invalid": 0,
+        "negative_tick_volume": 0,
+        "negative_spread": 0,
+        "misaligned_timeframe": 0
+      },
+      "warnings": [
+        "M15: 11702 bars have spread=0 (kept; common on older LiteFinance exports)",
+        "M15: 100000/100000 bars have real_volume=0 (kept; tick_volume is the activity field)",
+        "M15: first bar is 2022-07-01 05:45:00 while requested start is 2022-01-01 (raw export does not cover the full window; candles were not synthesized)",
+        "M15: raw file has 100000 rows (MetaTrader export cap is often 100000); history may be truncated",
+        "M15: preserved 1022 real gaps (weekend-like=212, >3d=8)"
+      ],
+      "errors": [],
+      "gap_stats": {
+        "expected_delta": "0 days 00:15:00",
+        "gap_count": 1022,
+        "weekend_like_gaps": 212,
+        "gaps_over_3_days": 8,
+        "max_gap": "3 days 02:15:00",
+        "examples": [
+          {
+            "from": "2024-03-28 22:45:00",
+            "to": "2024-04-01 01:00:00",
+            "hours": 74.25
+          },
+          {
+            "from": "2023-12-22 23:45:00",
+            "to": "2023-12-26 01:15:00",
+            "hours": 73.5
+          },
+          {
+            "from": "2023-12-29 23:45:00",
+            "to": "2024-01-02 01:15:00",
+            "hours": 73.5
+          },
+          {
+            "from": "2022-12-23 23:45:00",
+            "to": "2022-12-27 01:00:00",
+            "hours": 73.25
+          },
+          {
+            "from": "2022-12-30 23:45:00",
+            "to": "2023-01-03 01:00:00",
+            "hours": 73.25
+          },
+          {
+            "from": "2023-04-06 23:45:00",
+            "to": "2023-04-10 01:00:00",
+            "hours": 73.25
+          },
+          {
+            "from": "2025-04-17 23:45:00",
+            "to": "2025-04-21 01:00:00",
+            "hours": 73.25
+          },
+          {
+            "from": "2026-04-02 23:45:00",
+            "to": "2026-04-06 01:00:00",
+            "hours": 73.25
+          }
+        ]
+      },
+      "never_modified_raw": true,
+      "never_created_candles": true
+    }
+  ],
+  "errors": [],
+  "ok": true
+}
