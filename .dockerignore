@@ -18,5 +18,7 @@ data/processed/*
 !data/processed/
 !data/processed/ml/
 !data/processed/ml/XAUUSD_features.csv
+!data/processed/litefinance/
+!data/processed/litefinance/**
 !data/processed/.gitkeep
 data/models
