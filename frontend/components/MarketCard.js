@@ -68,20 +68,28 @@ export default function MarketCard({ item, liveTick, wsStatus }) {
 
   // Real price (live tick price preferred, falling back to verified candle/market item price, never fake)
   const rawPrice = liveTick?.price ?? liveTick?.close ?? item.price ?? item.close ?? null;
-  const priceFormatted = typeof rawPrice === "number"
-    ? rawPrice.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 4 })
+  const numericPrice = (rawPrice != null && !isNaN(Number(rawPrice))) ? Number(rawPrice) : null;
+  const priceFormatted = numericPrice !== null
+    ? numericPrice.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 4 })
     : "—";
 
-  // Real change metrics (never fake -0.64 / -22.27)
-  const changePct = item.daily_change_percent ?? item.change ?? null;
-  const hasChange = typeof changePct === "number";
-  const isUp = hasChange ? changePct >= 0 : true;
-
-  let pointsChange = item.points_change ?? null;
-  if (pointsChange == null && hasChange && typeof rawPrice === "number") {
-    const prevClose = rawPrice / (1 + changePct / 100);
-    pointsChange = rawPrice - prevClose;
+  // Previous daily close baseline (truthful anchor for % and points change)
+  let prevDailyClose = item.previous_daily_close ?? null;
+  if (prevDailyClose == null && item.price != null && item.daily_change_percent != null) {
+    prevDailyClose = item.price / (1 + item.daily_change_percent / 100);
   }
+
+  // Real change metrics (calculated dynamically against previous daily close)
+  let changePct = item.daily_change_percent ?? null;
+  let pointsChange = item.points_change ?? null;
+
+  if (numericPrice !== null && prevDailyClose !== null && prevDailyClose > 0) {
+    pointsChange = numericPrice - prevDailyClose;
+    changePct = (pointsChange / prevDailyClose) * 100;
+  }
+
+  const hasChange = typeof changePct === "number" && !isNaN(changePct);
+  const isUp = hasChange ? changePct >= 0 : true;
 
   // Parse exact timestamps
   const provMs = parseProviderTimestampMs(liveTick);
@@ -97,8 +105,17 @@ export default function MarketCard({ item, liveTick, wsStatus }) {
 
   if (provMs !== null) {
     latencyMs = Math.max(0, now - provMs);
-    if (isWsConnected) {
-      const ageSec = latencyMs / 1000;
+  } else if (recvMs !== null) {
+    latencyMs = Math.max(0, now - recvMs);
+  }
+
+  if (isWsConnected) {
+    const refMs = recvMs !== null && (provMs === null || (now - provMs) <= 60000)
+      ? recvMs
+      : (provMs ?? recvMs);
+
+    if (refMs !== null) {
+      const ageSec = Math.max(0, (now - refMs) / 1000);
       if (ageSec < 5) {
         feedStatus = "LIVE";
       } else if (ageSec <= 30) {
@@ -112,6 +129,7 @@ export default function MarketCard({ item, liveTick, wsStatus }) {
   } else {
     feedStatus = "OFFLINE";
   }
+
 
   const tickLatencyDisplay = latencyMs !== null ? `${latencyMs} ms` : "N/A";
   const providerTimeDisplay = provMs !== null ? new Date(provMs).toLocaleTimeString() : "N/A";

@@ -1,7 +1,13 @@
 const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function get(path) {
-  const r = await fetch(base + path);
+  const r = await fetch(base + path, {
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
+  });
   const b = await r.json().catch(() => ({}));
   if (!r.ok) throw Error(b.error?.message || `API ${r.status}`);
   return b;
@@ -15,10 +21,12 @@ export const api = {
   marketSymbol: (s) => get(`/api/market/${s}`),
   prediction: (s) => get(`/api/predictions/${s}?horizon=daily`),
   predictionWeekly: (s) => get(`/api/predictions/${s}?horizon=weekly`),
+  predictionSnapshot: (s, force = false) => get(`/api/predictions/${s}/snapshot${force ? "?force_recalculate=true" : ""}`),
   explanation: (s) => get(`/api/explanations/${s}`),
   news: (s) => get(s ? `/api/news?symbol=${s}` : "/api/news"),
   events: (mode = "today") => get(`/api/economic-events?mode=${mode}`),
   performance: () => get("/api/model-performance"),
   quality: () => get("/api/data-quality"),
   liveStatus: () => get("/api/market/live-status"),
+  triggerIngest: () => fetch(base + "/api/market/ingest-cycle", { method: "POST", cache: "no-store" }).then(r => r.json()).catch(() => ({})),
 };

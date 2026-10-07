@@ -1,0 +1,81 @@
+@startuml
+skinparam roundcorner 8
+
+entity "market_data" as MarketData {
+    * _id : ObjectId
+    --
+    * symbol : String ("XAUUSD")
+    * timeframe : String ("15m", "1h", "4h", "1d")
+    * timestamp : DateTime (UTC)
+    * open : Double
+    * high : Double
+    * low : Double
+    * close : Double
+    volume : Double
+    provider : String ("twelve_data", "litefinance")
+    is_closed : Boolean
+    retrieved_at_utc : DateTime
+    --
+    **Index Unique:**
+    (symbol ASC, timeframe ASC, timestamp ASC)
+}
+
+entity "predictions" as Predictions {
+    * _id : ObjectId
+    --
+    * symbol : String ("XAUUSD")
+    * timestamp : DateTime (UTC)
+    * direction : String ("BULLISH" | "BEARISH")
+    * confidence : Double [0.0, 1.0]
+    * probabilities : Object
+        * bullish : Double
+        * bearish : Double
+    model : String ("logistic_regression")
+    model_version : String
+    top_features : Array<Object>
+    scenarios : Array<Object>
+    data_quality : String ("FRESH" | "STALE")
+    market_as_of_utc : DateTime
+    horizon : String ("24h" | "120h")
+    horizon_hours : Integer
+    --
+    **Index Unique:**
+    (symbol ASC, model_version ASC, timestamp ASC)
+    **Index:**
+    (symbol ASC, timestamp DESC)
+}
+
+entity "ingestion_state" as IngestionState {
+    * _id : ObjectId
+    --
+    * symbol : String ("XAUUSD")
+    * timeframe : String ("1h")
+    status : String
+    schedule_seconds : Integer
+    last_attempt_at : DateTime
+    last_success_at : DateTime
+    last_new_candle_at : DateTime
+    last_prediction_refresh_at : DateTime
+    last_error : String
+    next_run_at : DateTime
+}
+
+entity "model_performance" as ModelPerf {
+    * _id : ObjectId
+    --
+    * symbol : String ("XAUUSD")
+    * model : String
+    * model_version : String
+    * testing_period_end : DateTime
+    metrics : Array<Object>
+    --
+    **Index Unique:**
+    (symbol ASC, model ASC, model_version ASC, testing_period_end ASC)
+}
+
+MarketData ||..o{ Predictions : "génère"
+MarketData ||..o{ IngestionState : "surveillé par"
+Predictions ||..o{ ModelPerf : "évalué par"
+
+@enduml
+

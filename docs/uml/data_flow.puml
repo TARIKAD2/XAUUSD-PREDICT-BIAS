@@ -1,0 +1,28 @@
+@startuml
+skinparam roundcorner 8
+
+actor "Marché Spot" as Market
+participant "Twelve Data" as Provider
+participant "LiveMarketService" as WSService
+participant "XAUUSDIngestionWorker" as Worker
+database "MongoDB\n(market_data)" as DB
+participant "PredictionService" as PredService
+participant "ModelServingEngine" as ML
+actor "Utilisateur Frontend" as User
+
+Market -> Provider: Variations du cours XAU/USD
+Provider -> WSService: Flux continu de ticks (WS)
+WSService -> User: Push instantané sur Dashboard Next.js
+
+Provider -> Worker: Requête périodique bougie H1 fermée (REST)
+Worker -> DB: Upsert bougie avec index unique (symbol, timeframe, timestamp)
+
+User -> PredService: Consultation prédiction (GET /api/predictions/XAUUSD)
+PredService -> DB: Récupération des dernières bougies H1, H4, M15
+PredService -> PredService: Calcul des 87 features causales
+PredService -> ML: Inférence (dernier vecteur de features)
+ML -> PredService: Probabilités (BULLISH/BEARISH), Confiance
+PredService -> User: Réponse structurée (Biais, Confiance, Top 8 Features, Scénarios)
+
+@enduml
+

@@ -64,6 +64,8 @@ class MarketSnapshot(APIModel):
     timestamp: datetime
     price: float = Field(gt=0)
     daily_change_percent: float | None
+    previous_daily_close: float | None = None
+    points_change: float | None = None
     timeframe: Timeframe
     is_stale: bool | None = None
     retrieved_at_utc: datetime | None = None

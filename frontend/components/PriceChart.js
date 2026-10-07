@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { useTranslation } from "../context/LanguageContext";
+import { formatDateTime } from "../services/dateFormat";
 
 // Rolling SMA calculation
 function calculateRollingSMA(candles, period = 200) {
@@ -14,11 +15,6 @@ function calculateRollingSMA(candles, period = 200) {
       result[i] = sum / period;
     } else if (i === period - 1) {
       result[i] = sum / period;
-    } else {
-      // For history shorter than period, provide rolling SMA if at least 10 bars
-      if (i >= 9) {
-        result[i] = sum / (i + 1);
-      }
     }
   }
   return result;
@@ -50,7 +46,28 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
     const innerWidth = width - pad.left - pad.right;
     const innerHeight = height - pad.top - pad.bottom;
 
-    if (!candles || candles.length < 2) {
+    // 1. Deduplicate by timestamp and sort chronologically
+    const candleMap = new Map();
+    for (const c of (candles || [])) {
+      if (!c || c.is_closed === false || c.close == null || isNaN(Number(c.close)) || Number(c.close) <= 0) continue;
+      const rawTs = c.timestamp || c.timestamp_utc;
+      const ts = typeof rawTs === "string"
+        ? new Date(rawTs.includes("Z") || /[+-]\d{2}/.test(rawTs) ? rawTs : rawTs + "Z").getTime()
+        : new Date(rawTs).getTime();
+      if (!isNaN(ts)) {
+        candleMap.set(ts, {
+          ...c,
+          _ts: ts,
+          open: Number(c.open || c.close),
+          high: Number(c.high || c.close),
+          low: Number(c.low || c.close),
+          close: Number(c.close),
+        });
+      }
+    }
+    const sorted = Array.from(candleMap.values()).sort((a, b) => a._ts - b._ts);
+
+    if (sorted.length < 2) {
       return {
         validCandles: [],
         closes: [],
@@ -61,25 +78,9 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
       };
     }
 
-    const valid = candles.filter(
-      (c) => c && Number.isFinite(Number(c.close)) && Number(c.close) > 0
-    );
+    const cList = sorted.map((c) => Number(c.close));
+    const smaList = calculateRollingSMA(sorted, 200);
 
-    if (valid.length < 2) {
-      return {
-        validCandles: [],
-        closes: [],
-        smaValues: [],
-        chartWidth: width,
-        chartHeight: height,
-        padding: pad,
-      };
-    }
-
-    const cList = valid.map((c) => Number(c.close));
-    const smaList = calculateRollingSMA(valid, 200);
-
-    // Compute min and max across both price and valid SMA
     let min = Math.min(...cList);
     let max = Math.max(...cList);
     smaList.forEach((v) => {
@@ -95,9 +96,9 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
     const span = max - min || 1;
 
     // Build price polyline points
-    const pPoints = valid
+    const pPoints = sorted
       .map((c, i) => {
-        const x = pad.left + (i / (valid.length - 1)) * innerWidth;
+        const x = pad.left + (i / (sorted.length - 1)) * innerWidth;
         const y = pad.top + innerHeight - ((Number(c.close) - min) / span) * innerHeight;
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       })
@@ -113,14 +114,14 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
     const sPointsArr = [];
     smaList.forEach((v, i) => {
       if (v !== null && Number.isFinite(v)) {
-        const x = pad.left + (i / (valid.length - 1)) * innerWidth;
+        const x = pad.left + (i / (sorted.length - 1)) * innerWidth;
         const y = pad.top + innerHeight - ((v - min) / span) * innerHeight;
         sPointsArr.push(`${x.toFixed(1)},${y.toFixed(1)}`);
       }
     });
     const sPoints = sPointsArr.join(" ");
 
-    // Generate 5 horizontal grid lines / Y-ticks
+    // Horizontal grid lines / Y-ticks
     const ticksCount = 5;
     const yt = [];
     for (let i = 0; i <= ticksCount; i++) {
@@ -129,22 +130,22 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
       yt.push({ value: pVal, y });
     }
 
-    // Generate 5 time labels / X-ticks
+    // Time labels / X-ticks in UTC
     const xt = [];
-    const numXTicks = Math.min(6, valid.length);
+    const numXTicks = Math.min(6, sorted.length);
     for (let i = 0; i < numXTicks; i++) {
-      const idx = Math.floor((i * (valid.length - 1)) / (numXTicks - 1));
-      const c = valid[idx];
-      const x = pad.left + (idx / (valid.length - 1)) * innerWidth;
-      const d = c?.timestamp ? new Date(c.timestamp) : null;
+      const idx = Math.floor((i * (sorted.length - 1)) / (numXTicks - 1));
+      const c = sorted[idx];
+      const x = pad.left + (idx / (sorted.length - 1)) * innerWidth;
+      const d = c?._ts ? new Date(c._ts) : null;
       const label = d
-        ? d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+        ? `${d.getUTCHours().toString().padStart(2, "0")}:00 UTC`
         : `#${idx}`;
       xt.push({ label, x });
     }
 
     return {
-      validCandles: valid,
+      validCandles: sorted,
       closes: cList,
       smaValues: smaList,
       minPrice: min,
@@ -159,7 +160,7 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
       yTicks: yt,
       xTicks: xt,
     };
-  }, [candles]);
+  }, [candles, symbol]);
 
   if (!validCandles.length) {
     return <div className="t-status-box">{t("chart.awaiting_history")}</div>;
@@ -168,7 +169,6 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
   const innerWidth = chartWidth - padding.left - padding.right;
   const innerHeight = chartHeight - padding.top - padding.bottom;
 
-  // Hover position calculation
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const clientX = e.clientX - rect.left;
@@ -189,6 +189,7 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
 
   const activeCandle = hoverIndex !== null ? validCandles[hoverIndex] : validCandles[validCandles.length - 1];
   const activeSMA = hoverIndex !== null ? smaValues[hoverIndex] : smaValues[smaValues.length - 1];
+  const activeTimestamp = activeCandle.timestamp || activeCandle.timestamp_utc || activeCandle._ts;
   const activeX =
     hoverIndex !== null
       ? padding.left + (hoverIndex / (validCandles.length - 1)) * innerWidth
@@ -354,17 +355,15 @@ export default function PriceChart({ candles = [], symbol = "XAUUSD" }) {
             )}
             {activeCandle.high && (
               <span className="text-muted">
-                {t("chart.high_low")}: {Number(activeCandle.high).toFixed(2)} / {Number(activeCandle.low).toFixed(2)}
+                {t("chart.high_low", {
+                  high: Number(activeCandle.high).toFixed(2),
+                  low: Number(activeCandle.low).toFixed(2),
+                })}
               </span>
             )}
-            {activeCandle.timestamp && (
+            {activeTimestamp && (
               <span className="text-muted">
-                {new Date(activeCandle.timestamp).toLocaleString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatDateTime(activeTimestamp, { timeZone: "UTC" })} UTC
               </span>
             )}
           </div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "../../../services/api";
+import { formatDateTime } from "../../../services/dateFormat";
 import { liveMarket } from "../../../services/liveMarket";
 import WarRoomHeader from "../../../components/WarRoomHeader";
 import ProbabilityGauge from "../../../components/ProbabilityGauge";
@@ -116,7 +117,7 @@ export default function WarRoomPage() {
           {t("war_room.footer_note")}
         </div>
         <div className="font-mono text-muted">
-          {t("war_room.generated")}: {new Date(data.generated_at).toUTCString()} {data.cached ? `(${t("war_room.cached")})` : `(${t("war_room.fresh_analysis")})`}
+          {t("war_room.generated")}: {formatDateTime(data.generated_at, { timeZone: "UTC" })} UTC {data.cached ? `(${t("war_room.cached")})` : `(${t("war_room.fresh_analysis")})`}
         </div>
       </footer>
     </main>

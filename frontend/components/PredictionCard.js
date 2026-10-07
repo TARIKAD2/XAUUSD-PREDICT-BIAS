@@ -1,25 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useTranslation } from "../context/LanguageContext";
-
-function formatTimestamp(value, locale) {
-  if (!value) return "—";
-  try {
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return String(value);
-    return d.toLocaleString(locale || "en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
-  } catch {
-    return String(value);
-  }
-}
+import { formatDateTime } from "../services/dateFormat";
 
 /**
  * PredictionCard – Daily / Weekly toggle.
@@ -38,7 +20,7 @@ export default function PredictionCard({
   horizon = "daily",
   onHorizonChange,
 }) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const [internalMode, setInternalMode] = useState("daily");
 
   const mode = onHorizonChange ? horizon : internalMode;
@@ -71,18 +53,21 @@ export default function PredictionCard({
       : t("prediction.horizon_val_daily") || "24H Forward (Daily Bias)";
 
   const factors = prediction?.top_features?.length ? prediction.top_features : [];
+  const factorsTitle = t("prediction.top_factors") || "Top Contributing Factors";
+  const factorsTitleWithoutShap = factorsTitle.replace(/\s*\(SHAP\)\s*$/i, "");
 
   const predictionTimeRaw =
     prediction?.prediction_timestamp_utc ||
     prediction?.timestamp ||
     prediction?.prediction_as_of;
   const candleTimeRaw =
-    latestCandle?.timestamp ||
+    prediction?.model_input_timestamp ||
     prediction?.market_as_of_utc ||
-    prediction?.data_timestamp;
+    prediction?.data_timestamp ||
+    latestCandle?.timestamp;
 
-  const predictionTimeFormatted = formatTimestamp(predictionTimeRaw, locale);
-  const candleTimeFormatted = formatTimestamp(candleTimeRaw, locale);
+  const predictionTimeFormatted = formatDateTime(predictionTimeRaw, { timeZone: "UTC", second: "2-digit" });
+  const candleTimeFormatted = formatDateTime(candleTimeRaw, { timeZone: "UTC" });
 
   // Error/unavailable for the selected mode
   const isUnavailable = !prediction;
@@ -164,11 +149,11 @@ export default function PredictionCard({
             </div>
           )}
 
-          {/* SHAP Contributing Factors */}
+          {/* Model Contributing Factors */}
           {factors.length > 0 && (
             <div className="shap-factors-section">
               <span className="shap-title">
-                {t("prediction.top_factors") || "TOP CONTRIBUTING FACTORS (SHAP)"}
+                {prediction?.explanation_method?.toLowerCase() === "shap" ? factorsTitle : factorsTitleWithoutShap}
               </span>
               <div className="shap-list">
                 {factors.map((f, i) => (

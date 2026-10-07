@@ -14,8 +14,17 @@ class LiveMarketClient {
     this.reconnectTimer = null;
 
     if (typeof window !== 'undefined') {
-      const baseUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}`.replace(/\/$/, '');
-      this.url = baseUrl.replace(/^http/, 'ws') + '/ws/market';
+      let baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').trim().replace(/\/$/, '');
+      if (!baseUrl) {
+        baseUrl = window.location.origin;
+      }
+      const isHttps = window.location.protocol === 'https:' || baseUrl.startsWith('https:');
+      const wsProto = isHttps ? 'wss:' : 'ws:';
+      if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
+        this.url = baseUrl.replace(/^https?:/, wsProto) + '/ws/market';
+      } else {
+        this.url = `${wsProto}//${window.location.host}${baseUrl}/ws/market`;
+      }
       this.connect();
     }
   }
@@ -62,6 +71,13 @@ class LiveMarketClient {
       try {
         const rawData = JSON.parse(event.data);
         const browserNow = Date.now();
+
+        if (rawData.type === 'heartbeat' || rawData.event === 'heartbeat' || rawData.type === 'ping') {
+          if (this.status !== 'CONNECTED') {
+            this.notifyStatus('CONNECTED');
+          }
+          return;
+        }
 
         const isInitialState = rawData.type === 'initial_state' || rawData.event === 'initial_state';
         // Calculate fine-grained latency metrics

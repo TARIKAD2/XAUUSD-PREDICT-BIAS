@@ -22,3 +22,4 @@ class MarketWorkerStatus(APIModel):
     next_run_at: datetime | None = None
     last_closed_processed: int | None = None
     prediction_refreshed: bool | None = None
+    latest_processed_candle_timestamp: datetime | None = None

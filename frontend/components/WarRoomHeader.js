@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { localizeEventName, useTranslation } from "../context/LanguageContext";
+import { formatDateTime } from "../services/dateFormat";
 
 export default function WarRoomHeader({ eventData, liveTick, wsStatus }) {
   const { t } = useTranslation();
@@ -50,14 +51,34 @@ export default function WarRoomHeader({ eventData, liveTick, wsStatus }) {
     return null;
   })();
 
+  const recvMs = (() => {
+    if (!liveTick) return null;
+    const ts = liveTick.received_at ?? liveTick.browser_received_at;
+    if (ts == null) return null;
+    if (typeof ts === "number") return ts > 1e11 ? ts : ts * 1000;
+    if (typeof ts === "string") {
+      const parsed = new Date(ts).getTime();
+      return isNaN(parsed) ? null : parsed;
+    }
+    return null;
+  })();
+
   const isConnected = wsStatus === "CONNECTED";
   let feedStatus = "OFFLINE";
-  if (isConnected && provMs !== null) {
-    const ageSec = Math.max(0, Date.now() - provMs) / 1000;
-    if (ageSec < 5) feedStatus = "LIVE";
-    else if (ageSec <= 30) feedStatus = "DELAYED";
-    else feedStatus = "STALE";
+  if (isConnected) {
+    const now = Date.now();
+    const refMs = recvMs !== null && (provMs === null || (now - provMs) <= 60000)
+      ? recvMs
+      : (provMs ?? recvMs);
+
+    if (refMs !== null) {
+      const ageSec = Math.max(0, (now - refMs) / 1000);
+      if (ageSec < 5) feedStatus = "LIVE";
+      else if (ageSec <= 30) feedStatus = "DELAYED";
+      else feedStatus = "STALE";
+    }
   }
+
 
   const translatedFeedStatus = {
     LIVE: t("status.live") || "LIVE",
@@ -102,7 +123,7 @@ export default function WarRoomHeader({ eventData, liveTick, wsStatus }) {
           <p className="event-datetime">
             {t("war_room.release_schedule")}:{" "}
             <strong>
-              {eventTime ? eventTime.toUTCString() : t("additional.scheduled")}
+              {eventTime ? `${formatDateTime(eventTime, { timeZone: "UTC" })} UTC` : t("additional.scheduled")}
             </strong>{" "}
             {isPast ? <span className="past-tag">({t("war_room.historical_obs")})</span> : <span className="upcoming-tag">({t("war_room.upcoming_rel")})</span>}
           </p>

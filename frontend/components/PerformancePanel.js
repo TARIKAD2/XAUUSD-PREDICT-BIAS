@@ -1,4 +1,5 @@
 import { useTranslation } from "../context/LanguageContext";
+import { formatDate } from "../services/dateFormat";
 
 function metricValue(metrics, name) {
   const found = (metrics || []).find((m) => m.name === name);
@@ -63,7 +64,7 @@ export default function PerformancePanel({ data }) {
                   <td>{metricValue(row.metrics, "brier")}</td>
                   <td className="text-muted">
                     {row.testing_period_start
-                      ? `${new Date(row.testing_period_start).toLocaleDateString()} → ${new Date(row.testing_period_end).toLocaleDateString()}`
+                      ? `${formatDate(row.testing_period_start)} → ${formatDate(row.testing_period_end)}`
                       : t("common.not_available")}
                   </td>
                 </tr>

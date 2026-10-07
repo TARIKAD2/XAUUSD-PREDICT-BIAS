@@ -72,6 +72,7 @@
   "technicals": {
     "title": "المؤشرات الفنية",
     "indicators_subtitle": "200 SMA • RSI • MACD",
+    "data_as_of": "شمعة H1 مغلقة عند {timestamp}",
     "sma_filter": "مرشح الاتجاه SMA (200)",
     "ema_filter": "مرشح الاتجاه EMA (200)",
     "level": "المستوى",
@@ -91,7 +92,7 @@
     "atr_desc": "مؤشر التقلب (نقاط / ساعة)",
     "market_structure": "هيكل السوق",
     "market_struct_desc": "مناطق القيمة العادلة POC / FVG",
-    "model_embedded": "مدمج في النموذج",
+    "model_embedded": "غير متاح ضمن الميزات الحالية",
     "insufficient_candles": "سجل الشموع غير كافٍ لاحتساب المؤشرات الفنية."
   },
   "scenarios": {

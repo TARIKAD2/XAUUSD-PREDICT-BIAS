@@ -1,0 +1,45 @@
+@startuml
+skinparam roundcorner 8
+autonumber
+
+actor "Client Web (Next.js)" as Client
+participant "FastAPI WS Endpoint\n(/ws/market)" as Endpoint
+participant "LiveMarketService\n(Singleton)" as Service
+participant "asyncio.Queue\n(Queue client)" as Queue
+cloud "Twelve Data WS\n(wss://ws.twelvedata.com)" as TD_WS
+
+== Initialisation de l'application ==
+Service -> TD_WS: Connexion WebSocket & Authentification (API Key)
+TD_WS --> Service: 101 Switching Protocols & Status OK
+Service -> TD_WS: Souscription symbole "XAU/USD"
+
+== Connexion d'un Client Frontend ==
+Client -> Endpoint: Requête Upgrade WebSocket (/ws/market)
+Endpoint -> Endpoint: ws.accept()
+Endpoint -> Service: add_subscriber()
+Service -> Queue: Créer asyncio.Queue(maxsize=100)
+Service -> Queue: Injecter le dernier tick en cache (type: initial_state)
+Service --> Endpoint: Référence Queue
+Endpoint -> Queue: queue.get()
+Queue --> Endpoint: Tick initial
+Endpoint -> Client: Envoi JSON (initial_state)
+
+== Diffusion en Continu des Ticks ==
+TD_WS -> Service: Message tick JSON ("event": "price", "price": 2705.50, "timestamp": ...)
+Service -> Service: Normaliser horodatage & valider symbole
+Service -> Service: Mettre à jour _latest_ticks["XAU/USD"]
+loop Pour chaque Queue active
+    Service -> Queue: put_nowait(tick_normalisé)
+end
+
+Endpoint -> Queue: queue.get()
+Queue --> Endpoint: Tick reçu
+Endpoint -> Client: ws.send_json(tick)
+
+== Déconnexion ==
+Client -> Endpoint: Fermeture connexion (WebSocketDisconnect)
+Endpoint -> Service: remove_subscriber(queue)
+Service -> Service: Supprimer queue de _subscriber_queues
+
+@enduml
+

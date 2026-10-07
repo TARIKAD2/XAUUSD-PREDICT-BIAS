@@ -1,0 +1,39 @@
+@startuml
+skinparam roundcorner 8
+
+node "Conteneurisation Locale (Docker Compose)" {
+    node "Service Frontend (Node 24-alpine)" {
+        component "Next.js Web Server\n(Port 3000)" as LocalFront
+    }
+    node "Service Backend (Python 3.13-slim)" {
+        component "FastAPI / Uvicorn\n(Port 8000)" as LocalBack
+    }
+}
+
+cloud "Configuration Déploiement Cloud (Non vérifié en runtime)" {
+    node "Vercel Edge Network" {
+        component "Next.js SSR Frontend" as CloudFront
+    }
+    node "Railway Cloud Platform" {
+        component "FastAPI Production Container" as CloudBack
+    }
+    database "MongoDB Atlas" {
+        folder "ai_market_intelligence Cluster" as CloudDB
+    }
+}
+
+LocalFront ..> LocalBack : HTTP REST & WS (http://localhost:8000)
+CloudFront ..> CloudBack : HTTPS REST & WSS (NEXT_PUBLIC_API_URL)
+LocalBack ..> CloudDB : Motor Async Driver (MONGODB_URI)
+CloudBack ..> CloudDB : Motor Async Driver (MONGODB_URI)
+
+note bottom of CloudBack
+Configuration présente dans le dépôt :
+- railway.toml
+- Dockerfile.railway
+- DEPLOYMENT.md
+(Déploiement cloud non vérifié dans le présent audit local)
+end note
+
+@enduml
+

@@ -1,0 +1,38 @@
+@startuml
+skinparam roundcorner 8
+autonumber
+
+actor "Client / Navigateur" as Client
+participant "FastAPI Router\n(/api/predictions/XAUUSD)" as Router
+participant "PredictionService" as Service
+participant "ModelServingEngine\n(Step 5)" as Engine
+participant "MarketService" as Market
+database "MongoDB\n(market_data)" as DB
+participant "Artifact Disque\n(models/xauusd/)" as Artifacts
+
+Client -> Router: GET /api/predictions/XAUUSD?horizon=daily
+Router -> Service: one(AssetSymbol.XAUUSD, horizon="daily")
+Service -> Engine: get_step5_engine()
+
+alt Modèle non initialisé
+    Engine -> Artifacts: Charger logistic_regression_final.joblib, feature_schema.json
+    Artifacts --> Engine: Artefacts chargés & vérifiés
+end
+
+Service -> Market: detail(XAUUSD, timeframe=H1, limit=400)
+Market -> DB: find({symbol: 'XAUUSD', timeframe: '1h'})
+DB --> Market: Bougies H1 fermées
+Market --> Service: Liste des MarketCandle
+
+Service -> Service: Vérifier bougies fermées & calculer 87 features MTF\n(build_feature_frame avec alignement causal)
+Service -> Engine: predict(last_row_features)
+Engine -> Engine: Valider schéma de features (87 colonnes)
+Engine -> Engine: Standardiser & Calculer logit\nProbability(BULLISH), Probability(BEARISH)\nConfidence = |P - 0.5| * 2
+Engine --> Service: PredictionOutput (direction, probas, confidence)
+
+Service -> Service: Calculer coefficients linéaires prépondérants (Top 8)\n& Générer scénarios (Base, Bullish, Bearish)
+Service --> Router: PredictionResponse
+Router --> Client: 200 OK (JSON conforme au schéma Pydantic)
+
+@enduml
+

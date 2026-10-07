@@ -1,4 +1,5 @@
 import { useTranslation } from "../context/LanguageContext";
+import { formatDateTime } from "../services/dateFormat";
 
 export default function QualityPanel({ data }) {
   const { t } = useTranslation();
@@ -35,7 +36,7 @@ export default function QualityPanel({ data }) {
                 </span>
               </td>
               <td className="text-muted">
-                {row.last_timestamp ? new Date(row.last_timestamp).toLocaleString() : t("common.not_available")}
+                {formatDateTime(row.last_timestamp)}
               </td>
             </tr>
           ))}

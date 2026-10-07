@@ -72,6 +72,7 @@
   "technicals": {
     "title": "Indicateurs Techniques",
     "indicators_subtitle": "MMS 200 • RSI • MACD",
+    "data_as_of": "Bougie H1 clôturée au {timestamp}",
     "sma_filter": "Filtre de Tendance MMS (200)",
     "ema_filter": "Filtre de Tendance MMEx (200)",
     "level": "Niveau",
@@ -91,7 +92,7 @@
     "atr_desc": "Plage Moyenne Réelle (Points / Heure)",
     "market_structure": "Structure de Marché",
     "market_struct_desc": "POC / FVG / Zones de Juste Valeur",
-    "model_embedded": "Intégré au Modèle",
+    "model_embedded": "Absent des variables actives",
     "insufficient_candles": "Historique de bougies insuffisant pour les indicateurs techniques."
   },
   "scenarios": {

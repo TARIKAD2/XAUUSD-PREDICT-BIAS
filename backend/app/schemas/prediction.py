@@ -3,7 +3,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from .base import APIModel
 from .market import AssetSymbol
@@ -41,7 +41,25 @@ class Scenario(APIModel):
     context: str
 
 
+class TechnicalIndicators(APIModel):
+    sma_20: float | None = None
+    sma_50: float | None = None
+    sma_200: float | None = None
+    ema_12: float | None = None
+    ema_20: float | None = None
+    ema_26: float | None = None
+    ema_50: float | None = None
+    ema_200: float | None = None
+    rsi_14: float | None = None
+    macd: float | None = None
+    macd_signal: float | None = None
+    macd_hist: float | None = None
+    atr_14: float | None = None
+    current_close: float | None = None
+
+
 class PredictionResponse(APIModel):
+    model_config = ConfigDict(extra="ignore")
     symbol: AssetSymbol
     timestamp: datetime
     direction: MarketDirection
@@ -60,6 +78,8 @@ class PredictionResponse(APIModel):
     prediction_timestamp_utc: datetime | None = None
     prediction_as_of: datetime | None = None
     market_as_of_utc: datetime | None = None
+    model_input_timestamp: datetime | None = None
+    generated_at: datetime | None = None
     quality_reasons: list[str] = Field(default_factory=list)
     explanation_method: str = "unavailable"
     horizon: str = "24h"
@@ -69,3 +89,20 @@ class PredictionResponse(APIModel):
 class PredictionListResponse(APIModel):
     items: list[PredictionResponse]
     generated_at: datetime
+
+
+class PredictionSnapshotResponse(APIModel):
+    model_config = ConfigDict(extra="ignore")
+    symbol: AssetSymbol
+    timeframe: str = "1h"
+    model_input_timestamp: datetime
+    prediction_timestamp_utc: datetime
+    generated_at: datetime
+    data_timestamp: datetime
+    data_quality: str = "FRESH"
+    quality_reasons: list[str] = Field(default_factory=list)
+    daily: PredictionResponse
+    weekly: PredictionResponse | None = None
+    technical_indicators: TechnicalIndicators | None = None
+    scenarios_daily: list[Scenario] = Field(default_factory=list)
+    scenarios_weekly: list[Scenario] = Field(default_factory=list)

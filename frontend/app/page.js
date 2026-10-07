@@ -85,8 +85,16 @@ export default function Home() {
       await Promise.allSettled([
         refreshData(api.market, setMarket),
         refreshData(() => api.marketSymbol(asset), setDetail),
-        refreshData(() => api.prediction(asset), setPrediction),
-        refreshData(() => api.predictionWeekly(asset), setPredictionWeekly),
+        api.predictionSnapshot(asset).then((snap) => {
+          if (snap) {
+            if (snap.daily) setPrediction({ data: snap.daily, loading: false });
+            if (snap.weekly) setPredictionWeekly({ data: snap.weekly, loading: false });
+          }
+        }).catch(() => {
+          // Fallback if snapshot is unavailable
+          refreshData(() => api.prediction(asset), setPrediction);
+          refreshData(() => api.predictionWeekly(asset), setPredictionWeekly);
+        }),
         refreshData(() => api.explanation(asset), setExplanation),
         api.liveStatus().then((res) => {
           if (res?.symbols) {
@@ -118,8 +126,15 @@ export default function Home() {
   useEffect(() => {
     load(api.market, setMarket);
     load(() => api.marketSymbol(asset), setDetail);
-    load(() => api.prediction(asset), setPrediction);
-    load(() => api.predictionWeekly(asset), setPredictionWeekly);
+    api.predictionSnapshot(asset).then((snap) => {
+      if (snap) {
+        if (snap.daily) setPrediction({ data: snap.daily, loading: false });
+        if (snap.weekly) setPredictionWeekly({ data: snap.weekly, loading: false });
+      }
+    }).catch(() => {
+      load(() => api.prediction(asset), setPrediction);
+      load(() => api.predictionWeekly(asset), setPredictionWeekly);
+    });
     load(() => api.explanation(asset), setExplanation);
     api.liveStatus().then((res) => {
       if (res?.symbols) {
@@ -188,7 +203,7 @@ export default function Home() {
                 wsStatus={wsStatus}
               />
               <PanelContent title={t("panels.price_chart")} state={detail} empty={!candles.length}>
-                <PriceChart candles={candles} symbol={asset} />
+                <PriceChart candles={candles} symbol={asset} liveTick={liveTick} />
               </PanelContent>
             </div>
           </div>

@@ -245,19 +245,21 @@ class LiveMarketService:
                 received_at_val = raw_tick.get("received_at")
                 recv_dt = _parse_received_dt(received_at_val)
 
-                # Reference for freshness: latest provider tick timestamp
-                ref_dt = prov_dt or recv_dt
-
-                if ref_dt is not None:
+                try:
                     latency_ms = max(0, int((now - prov_dt).total_seconds() * 1000)) if prov_dt else None
-                    age_sec = (now - ref_dt).total_seconds()
+                    if prov_dt and abs((now - prov_dt).total_seconds()) > 60:
+                        ref_dt = prov_dt
+                    else:
+                        ref_dt = recv_dt or prov_dt
+
+                    age_sec = max(0.0, (now - ref_dt).total_seconds())
                     if age_sec < self._settings.live_freshness_live_sec:
                         status = SymbolStatus.LIVE
                     elif age_sec <= self._settings.live_freshness_delayed_sec:
                         status = SymbolStatus.DELAYED
                     else:
                         status = SymbolStatus.STALE
-                else:
+                except Exception:
                     latency_ms = None
                     status = SymbolStatus.STALE
 
@@ -285,9 +287,20 @@ class LiveMarketService:
     # ---------------------------------------------------------------------
     # Supervisor connection and message loop
     # ---------------------------------------------------------------------
+    async def _heartbeat_loop(self, ws: Any) -> None:
+        """Send Twelve Data application heartbeat every 10s while connected."""
+        try:
+            while not self._stopped and ws is not None:
+                await asyncio.sleep(10)
+                await ws.send(json.dumps({"action": "heartbeat"}))
+        except (asyncio.CancelledError, Exception):
+            pass
+
     async def _supervisor_loop(self) -> None:
         attempt = 0
         while not self._stopped:
+            hb_task: asyncio.Task | None = None
+            ticks_received = 0
             try:
                 self._provider_state = ProviderState.CONNECTING
                 # Mask API key in all logging
@@ -299,8 +312,7 @@ class LiveMarketService:
                 try:
                     connect_call = websockets.connect(
                         ws_url,
-                        ping_interval=20,
-                        ping_timeout=20,
+                        ping_interval=None,
                         close_timeout=10,
                     )
                 except TypeError:
@@ -318,7 +330,9 @@ class LiveMarketService:
                 await self._ws.send(sub_msg)
                 self._provider_state = ProviderState.CONNECTED
                 self._logger.info("live_market:connected", extra={"symbols": symbols_param})
-                attempt = 0  # reset reconnect delay on successful connection
+
+                # Start heartbeat keepalive task to Twelve Data
+                hb_task = asyncio.create_task(self._heartbeat_loop(self._ws))
 
                 for sym in self._supported_symbols:
                     if self._symbol_status.get(sym) != SymbolStatus.UNAVAILABLE:
@@ -328,7 +342,12 @@ class LiveMarketService:
                 async for raw_msg in self._ws:
                     if self._stopped:
                         break
-                    await self._process_message(raw_msg)
+                    processed = await self._process_message(raw_msg)
+                    if processed:
+                        ticks_received += 1
+
+                if ticks_received > 0:
+                    attempt = 0
 
             except asyncio.CancelledError:
                 break
@@ -342,6 +361,12 @@ class LiveMarketService:
                 self._provider_state = ProviderState.DISCONNECTED
                 self._logger.info("live_market:connection_closed")
             finally:
+                if hb_task:
+                    hb_task.cancel()
+                    try:
+                        await hb_task
+                    except (asyncio.CancelledError, Exception):
+                        pass
                 if self._ws:
                     try:
                         await self._ws.close()
@@ -350,28 +375,33 @@ class LiveMarketService:
                     self._ws = None
 
             if not self._stopped:
-                base = self._settings.live_reconnect_base_seconds
-                max_sec = self._settings.live_reconnect_max_seconds
-                delay = min(base * (2 ** attempt), max_sec)
-                attempt += 1
+                # If we received ticks, reconnect promptly without exponential backoff
+                if ticks_received > 0:
+                    delay = self._settings.live_reconnect_base_seconds
+                else:
+                    base = self._settings.live_reconnect_base_seconds
+                    max_sec = self._settings.live_reconnect_max_seconds
+                    delay = min(base * (2 ** attempt), max_sec)
+                    attempt += 1
+
                 self._logger.info("live_market:reconnecting", extra={"delay_sec": delay, "attempt": attempt})
                 try:
                     await asyncio.sleep(delay)
                 except asyncio.CancelledError:
                     break
 
-    async def _process_message(self, raw_msg: str) -> None:
+    async def _process_message(self, raw_msg: str) -> bool:
         try:
             msg = json.loads(raw_msg)
         except Exception:
             self._logger.debug("live_market:non_json_message", extra={"msg": str(raw_msg)})
-            return
+            return False
 
         self._logger.debug("live_market:message", extra={"msg": msg})
 
         # Heartbeat
         if msg.get("type") == "heartbeat" or msg.get("event") == "heartbeat":
-            return
+            return False
 
         # Subscription status
         event_name = msg.get("event") or msg.get("type")
@@ -384,16 +414,16 @@ class LiveMarketService:
                         "live_market:symbol_unavailable",
                         extra={"symbol": sym, "message": msg.get("message")},
                     )
-            return
+            return False
 
         # Price event (Twelve Data uses event: "price" and type: "Precious Metal" or similar)
         if msg.get("event") == "price" or msg.get("type") == "price":
             sym = msg.get("symbol") or msg.get("symbol_name")
             if not sym:
-                return
+                return False
             sym = sym.upper()
             if sym not in self._supported_symbols:
-                return
+                return False
 
             now = datetime.now(timezone.utc)
             provider_ts = msg.get("timestamp") or msg.get("datetime")
@@ -401,18 +431,28 @@ class LiveMarketService:
             provider_iso = prov_dt.isoformat() if prov_dt else (str(provider_ts) if provider_ts is not None else None)
             latency_ms = max(0, int((now - prov_dt).total_seconds() * 1000)) if prov_dt else None
 
-            if prov_dt is not None:
-                age_sec = (now - prov_dt).total_seconds()
-                if age_sec < self._settings.live_freshness_live_sec:
-                    status = SymbolStatus.LIVE
-                elif age_sec <= self._settings.live_freshness_delayed_sec:
-                    status = SymbolStatus.DELAYED
-                else:
-                    status = SymbolStatus.STALE
+            # Reference timestamp: if provider timestamp is older than 60s, use provider timestamp.
+            # Otherwise use current arrival time (real live WebSocket stream tick).
+            if prov_dt and abs((now - prov_dt).total_seconds()) > 60:
+                ref_dt = prov_dt
+            else:
+                ref_dt = now
+
+            age_sec = max(0.0, (now - ref_dt).total_seconds())
+            if age_sec < self._settings.live_freshness_live_sec:
+                status = SymbolStatus.LIVE
+            elif age_sec <= self._settings.live_freshness_delayed_sec:
+                status = SymbolStatus.DELAYED
             else:
                 status = SymbolStatus.STALE
 
             raw_price = msg.get("price") if "price" in msg and msg.get("price") is not None else msg.get("value")
+            clean_price = None
+            if raw_price is not None:
+                try:
+                    clean_price = float(raw_price)
+                except (ValueError, TypeError):
+                    clean_price = None
 
             tick: Dict[str, Any] = {
                 "type": "price",
@@ -420,6 +460,7 @@ class LiveMarketService:
                 "symbol": sym,
                 "normalized_symbol": sym.replace("/", ""),
                 "price": raw_price,
+                "numeric_price": clean_price,
                 "provider_timestamp": provider_ts,
                 "provider_time": provider_iso,
                 "iso_timestamp": provider_iso or (str(provider_ts) if provider_ts is not None else None),
@@ -430,6 +471,9 @@ class LiveMarketService:
             self._latest_ticks[sym] = tick
             self._symbol_status[sym] = status
             await self._broadcast_tick(tick)
+            return True
+
+        return False
 
     async def _broadcast_tick(self, tick: Dict[str, Any]) -> None:
         dead: List[asyncio.Queue] = []

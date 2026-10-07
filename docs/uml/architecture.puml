@@ -1,0 +1,69 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam roundcorner 8
+
+package "Frontend (Next.js 15 / React 19)" {
+    component "Dashboard Principal (page.js)" as Page
+    component "MarketCard & PriceChart" as MarketUI
+    component "PredictionCard (BULLISH/BEARISH)" as PredUI
+    component "TechnicalPanel & ScenarioPanel" as TechUI
+    component "LanguageContext (EN/FR/AR)" as i18n
+    component "API REST Client (api.js)" as ApiClient
+    component "WebSocket Client (liveMarket.js)" as WSClient
+}
+
+package "Backend (FastAPI / Python 3.13)" {
+    component "ASGI App & Lifespan (main.py)" as Main
+    component "API Routers (router.py)" as Router
+    component "LiveMarketService (WebSocket Singleton)" as LiveService
+    component "PredictionService" as PredService
+    component "ModelServingEngine (Step 5)" as ServingEngine
+    component "MarketService & DataQualityService" as MarketService
+    component "XAUUSDIngestionWorker" as Worker
+}
+
+package "Machine Learning Artifacts" {
+    artifact "logistic_regression_final.joblib" as ModelArt
+    artifact "feature_schema.json (87 cols)" as SchemaArt
+    artifact "final_metrics.json" as MetricsArt
+}
+
+database "MongoDB (Local / Atlas Config)" {
+    folder "market_data" as MarketColl
+    folder "predictions" as PredColl
+    folder "ingestion_state" as StateColl
+}
+
+cloud "Fournisseurs Externes" {
+    [Twelve Data WebSocket] as TD_WS
+    [Twelve Data REST API] as TD_REST
+}
+
+Page --> MarketUI
+Page --> PredUI
+Page --> TechUI
+Page --> i18n
+MarketUI --> ApiClient
+MarketUI --> WSClient
+PredUI --> ApiClient
+TechUI --> ApiClient
+
+ApiClient --> Router : HTTP /api/*
+WSClient --> LiveService : WS /api/ws/market
+
+Router --> LiveService
+Router --> PredService
+Router --> MarketService
+
+LiveService <-- TD_WS : Ticks temps réel
+Worker --> TD_REST : Bougies H1 fermées
+Worker --> MarketColl : Ingestion
+MarketService --> MarketColl : Lecture
+
+PredService --> ServingEngine : Inférence
+ServingEngine --> ModelArt : Chargement
+ServingEngine --> SchemaArt : Validation
+ServingEngine --> MarketColl : Bougies fermées récentes
+
+@enduml
+

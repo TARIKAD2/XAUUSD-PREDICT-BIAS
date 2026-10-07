@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useTranslation, localizeEventName } from "../context/LanguageContext";
+import { formatDateTime } from "../services/dateFormat";
 
 export default function EconomicEventCard({ item }) {
   const { t } = useTranslation();
@@ -7,7 +8,7 @@ export default function EconomicEventCard({ item }) {
 
   const eventTitle = item.event || item.title || item.event_name || t("additional.default_event");
   const localizedTitle = localizeEventName(eventTitle, t);
-  const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleString() : t("common.not_available");
+  const timeStr = formatDateTime(item.timestamp);
   const actualStr = item.actual !== undefined && item.actual !== null ? item.actual : t("common.not_available");
   const forecastStr = item.forecast !== undefined && item.forecast !== null ? item.forecast : t("common.not_available");
   const importanceStr = item.importance ? String(item.importance).toUpperCase() : t("events.impact_medium");

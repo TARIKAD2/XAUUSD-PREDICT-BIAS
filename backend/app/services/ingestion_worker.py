@@ -57,11 +57,13 @@ class XAUUSDIngestionWorker:
             "last_attempt_at": None,
             "last_success_at": None,
             "last_new_candle_at": None,
+            "latest_processed_candle_timestamp": None,
             "last_prediction_refresh_at": None,
             "last_prediction_market_as_of": None,
             "last_prediction_model_version": None,
             "last_error": None,
             "next_run_at": None,
+            "prediction_refreshed": False,
         }
 
     def snapshot(self) -> dict[str, Any]:
@@ -90,15 +92,27 @@ class XAUUSDIngestionWorker:
         await self._persist_state()
 
     async def _run(self) -> None:
+        if getattr(self.manager, "is_connected", False):
+            try:
+                state_doc = await self.manager.database[INGESTION_STATE].find_one(
+                    {"symbol": self.symbol.value, "timeframe": self.timeframe.value}
+                )
+                if state_doc and "worker_latest_processed_candle_timestamp" in state_doc:
+                    self._state["latest_processed_candle_timestamp"] = state_doc["worker_latest_processed_candle_timestamp"]
+            except Exception:
+                pass
+
         while not self._stopping:
             cycle_started = datetime.now(UTC)
             await self.run_once()
-            next_run = cycle_started + timedelta(seconds=self._interval_seconds)
+            # Check every 60 seconds (or bounded interval) so newly closed H1 candles are detected promptly
+            delay = min(float(self._interval_seconds), 60.0)
+            next_run = cycle_started + timedelta(seconds=delay)
             self._state["next_run_at"] = next_run
             await self._persist_state()
-            delay = max(0.0, (next_run - datetime.now(UTC)).total_seconds())
+            sleep_sec = max(0.0, (next_run - datetime.now(UTC)).total_seconds())
             try:
-                await asyncio.sleep(delay)
+                await asyncio.sleep(sleep_sec)
             except asyncio.CancelledError:
                 raise
 
@@ -150,10 +164,19 @@ class XAUUSDIngestionWorker:
 
                 after = await market.watermark(self.symbol, self.timeframe)
                 refreshed = False
-                if after is not None and (before is None or after > before):
-                    prediction = await self._prediction_service_factory(self.manager).one(self.symbol)
-                    await self._persist_prediction(prediction)
+                last_processed = self._state.get("latest_processed_candle_timestamp")
+                if after is not None and (last_processed is None or after > last_processed):
+                    pred_service = self._prediction_service_factory(self.manager)
+                    if hasattr(pred_service, "generate_snapshot") and hasattr(pred_service, "persist_snapshot"):
+                        snapshot = await pred_service.generate_snapshot(self.symbol)
+                        await pred_service.persist_snapshot(snapshot)
+                        prediction = snapshot.daily
+                    else:
+                        prediction = await pred_service.one(self.symbol)
+                        await self._persist_prediction(prediction)
+
                     self._state.update({
+                        "latest_processed_candle_timestamp": after,
                         "last_new_candle_at": after,
                         "last_prediction_refresh_at": prediction.prediction_timestamp_utc or prediction.timestamp,
                         "last_prediction_market_as_of": prediction.market_as_of_utc,
@@ -208,6 +231,7 @@ class XAUUSDIngestionWorker:
             "worker_last_attempt_at": self._state["last_attempt_at"],
             "worker_last_success_at": self._state["last_success_at"],
             "worker_last_new_candle_at": self._state["last_new_candle_at"],
+            "worker_latest_processed_candle_timestamp": self._state.get("latest_processed_candle_timestamp"),
             "worker_last_prediction_refresh_at": self._state["last_prediction_refresh_at"],
             "worker_last_prediction_market_as_of": self._state["last_prediction_market_as_of"],
             "worker_last_prediction_model_version": self._state["last_prediction_model_version"],

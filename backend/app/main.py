@@ -72,7 +72,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=list(resolved.cors_origins),
         allow_credentials=False,
         allow_methods=["GET"],
-        allow_headers=["Accept", "Content-Type", "X-Request-ID"],
+        allow_headers=["Accept", "Content-Type", "X-Request-ID", "Cache-Control", "Pragma"],
         max_age=600,
     )
     app.middleware("http")(request_logging_middleware)

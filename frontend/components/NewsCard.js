@@ -1,4 +1,5 @@
 import { useTranslation } from "../context/LanguageContext";
+import { formatDateTime } from "../services/dateFormat";
 
 export default function NewsCard({ item }) {
   const { t } = useTranslation();
@@ -17,7 +18,7 @@ export default function NewsCard({ item }) {
       </h4>
       <p className="source">
         {item.source || t("additional.news_source")} •{" "}
-        {item.published_at ? new Date(item.published_at).toLocaleString() : t("common.not_available")}
+        {formatDateTime(item.published_at)}
       </p>
       {item.sentiment ? <p className="sentiment">{t("news.sentiment")}: {item.sentiment}</p> : null}
     </div>

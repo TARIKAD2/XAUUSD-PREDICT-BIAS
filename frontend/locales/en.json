@@ -72,6 +72,7 @@
   "technicals": {
     "title": "Technical Indicators",
     "indicators_subtitle": "200 SMA • RSI • MACD",
+    "data_as_of": "Closed H1 candle as of {timestamp}",
     "sma_filter": "SMA (200) Trend Filter",
     "ema_filter": "EMA (200) Trend Filter",
     "level": "Level",
@@ -91,7 +92,7 @@
     "atr_desc": "Average True Range (Points / Hour)",
     "market_structure": "Market Structure",
     "market_struct_desc": "POC / FVG / Fair Value Zones",
-    "model_embedded": "Model Embedded",
+    "model_embedded": "Not in live feature set",
     "insufficient_candles": "Insufficient candle history for technical indicators."
   },
   "scenarios": {

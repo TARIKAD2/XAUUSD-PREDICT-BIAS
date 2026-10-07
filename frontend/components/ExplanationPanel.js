@@ -1,4 +1,12 @@
 import { useTranslation } from "../context/LanguageContext";
+import { formatDateTime } from "../services/dateFormat";
+
+function formatTimestamps(text) {
+  return text.replace(
+    /\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?\b/g,
+    (timestamp) => `${formatDateTime(timestamp, { timeZone: "UTC" })} UTC`
+  );
+}
 
 export default function ExplanationPanel({ prediction, explanation }) {
   const { t } = useTranslation();
@@ -9,7 +17,7 @@ export default function ExplanationPanel({ prediction, explanation }) {
   return (
     <div className="explanation-content">
       <div className="explanation-context-box">
-        {mainContext}
+        {formatTimestamps(mainContext)}
       </div>
 
       {reasons.length > 0 && (
@@ -17,7 +25,7 @@ export default function ExplanationPanel({ prediction, explanation }) {
           {reasons.map((reason, idx) => (
             <div className="explanation-reason-item" key={idx}>
               <span className="reason-bullet">▸</span>
-              <span>{reason}</span>
+              <span>{formatTimestamps(reason)}</span>
             </div>
           ))}
         </div>

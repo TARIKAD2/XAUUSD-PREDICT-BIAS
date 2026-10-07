@@ -432,5 +432,5 @@
     "lightgbm: overfitting \u2014 mean train-val accuracy gap=0.335"
   ],
   "step2_features_sha256": "bcc8ab42b20a3b6421cc60ca173f5558332dca7e3fc991abc49ee646838ad429",
-  "finished_at": "2026-09-29T20:25:26"
+  "finished_at": "2026-10-07T21:23:16"
 }

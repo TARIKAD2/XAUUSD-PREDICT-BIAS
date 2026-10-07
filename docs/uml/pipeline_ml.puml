@@ -1,0 +1,67 @@
+@startuml
+skinparam roundcorner 8
+
+start
+
+:Étape 1 : Nettoyage LiteFinance;
+note right
+- Audit d'intégrité OHLC
+- Aucun bar synthétique
+- Préservation des gaps réels
+end note
+
+:Étape 2 : Construction de 87 Features MTF;
+note right
+- H1 (base), H4, M15
+- Alignement causal as-of backward
+- available_at = timestamp + delta
+- Aucune fuite d'information future
+end note
+
+:Étape 3 : Définition de la Cible Binaire;
+note right
+- Calcul du rendement futur à t+24 (ou t+120)
+- BULLISH si Return >= +0.5% (classe 1)
+- BEARISH si Return <= -0.5% (classe 0)
+- Filtrage de la zone morte (|Return| < 0.5%)
+- Espace de prédiction STRICTEMENT binaire
+end note
+
+:Étape 4 : Walk-Forward Validation & Benchmark;
+note right
+- 4 Folds temporels à fenêtre expansive
+- Embargo temporel de 24 bars
+- 4 Algorithmes évalués :
+  * LogisticRegression
+  * RandomForest
+  * XGBoost
+  * LightGBM
+- Détection du surapprentissage & class collapse
+- Sélection par score composite multi-critères
+end note
+
+:Étape 5 : Persistance du Modèle Retenu;
+note right
+- Vainqueur : LogisticRegression
+- Sauvegarde des artefacts dans models/xauusd/ :
+  * logistic_regression_final.joblib
+  * feature_schema.json
+  * final_metrics.json
+  * label_definition.json
+  * step4_audit.json
+end note
+
+:Étape 6 : Serving en Production (Step 5 Engine);
+note right
+- Chargement sécurisé & validation du schéma
+- Inférence sur la dernière bougie fermée vérifiée
+- Calcul de P(BULLISH) et P(BEARISH)
+- Calcul de Confiance = |P - 0.5| * 2
+- Explicabilité via coefficients linéaires logit
+- Statut MODEL_NOT_READY si données incomplètes
+end note
+
+stop
+
+@enduml
+

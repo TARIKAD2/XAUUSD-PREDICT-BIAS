@@ -823,6 +823,52 @@ html, body {
   z-index: 10;
 }
 
+@media (max-width: 768px), (max-width: 900px) and (max-height: 450px) {
+  .chart-container {
+    height: auto;
+    min-height: 280px;
+    min-width: 0;
+  }
+
+  .svg-chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .svg-chart {
+    display: block;
+    flex: 0 0 auto;
+    height: clamp(190px, 28.65vw, 220px);
+  }
+
+  .chart-tooltip-box {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 10px;
+    padding: 7px 9px;
+    line-height: 1.35;
+  }
+
+  .chart-tooltip-box > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-tooltip-box {
+    gap: 5px 8px;
+    padding: 6px 7px;
+    font-size: 9px;
+  }
+}
+
 /* Status Panel */
 .status-panel {
   padding: 16px;

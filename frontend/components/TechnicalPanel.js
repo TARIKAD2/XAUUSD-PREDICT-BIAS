@@ -1,4 +1,5 @@
 import { useTranslation } from "../context/LanguageContext";
+import { formatDateTime } from "../services/dateFormat";
 
 function last(values) {
   return values.length ? values[values.length - 1] : null;
@@ -34,11 +35,27 @@ function ema(values, period) {
   return current;
 }
 
+function atr(candles, period = 14) {
+  if (candles.length <= period) return null;
+  const trueRanges = [];
+  for (let i = 1; i < candles.length; i += 1) {
+    const high = Number(candles[i].high);
+    const low = Number(candles[i].low);
+    const previousClose = Number(candles[i - 1].close);
+    trueRanges.push(Math.max(high - low, Math.abs(high - previousClose), Math.abs(low - previousClose)));
+  }
+  return sma(trueRanges, period);
+}
+
 export default function TechnicalPanel({ candles = [], symbol = "XAUUSD" }) {
   const { t } = useTranslation();
-  const closes = (candles || []).map((c) => Number(c.close)).filter((v) => Number.isFinite(v));
-  const highs = (candles || []).map((c) => Number(c.high)).filter((v) => Number.isFinite(v));
-  const lows = (candles || []).map((c) => Number(c.low)).filter((v) => Number.isFinite(v));
+  const validCandles = (candles || []).filter((candle) =>
+    candle &&
+    candle.is_closed !== false &&
+    Number.isFinite(Date.parse(candle.timestamp || candle.timestamp_utc)) &&
+    [candle.open, candle.high, candle.low, candle.close].every((value) => Number.isFinite(Number(value)) && Number(value) > 0)
+  );
+  const closes = validCandles.map((candle) => Number(candle.close));
 
   if (closes.length < 14) {
     return <div className="t-status-box">{t("technicals.insufficient_candles")}</div>;
@@ -49,11 +66,10 @@ export default function TechnicalPanel({ candles = [], symbol = "XAUUSD" }) {
   const ema12 = ema(closes, 12);
   const ema26 = ema(closes, 26);
   const macd = ema12 != null && ema26 != null ? ema12 - ema26 : null;
-  const atr = highs.length === lows.length && highs.length >= 14
-    ? sma(highs.map((h, i) => h - lows[i]), 14)
-    : null;
-  const sma200 = sma(closes, Math.min(200, closes.length));
+  const atrValue = atr(validCandles, 14);
+  const sma200 = sma(closes, 200);
   const ema200 = ema(closes, 200);
+  const latestCandle = validCandles[validCandles.length - 1];
 
   const isAboveSMA = sma200 != null && currentPrice != null ? currentPrice >= sma200 : null;
   const smaDiff = sma200 != null && currentPrice != null ? currentPrice - sma200 : null;
@@ -66,6 +82,12 @@ export default function TechnicalPanel({ candles = [], symbol = "XAUUSD" }) {
 
   return (
     <div className="technicals-grid">
+      <div className="tech-desc font-mono">
+        {t("technicals.data_as_of", {
+          timestamp: `${formatDateTime(latestCandle.timestamp || latestCandle.timestamp_utc, { timeZone: "UTC" })} UTC`,
+        })}
+      </div>
+
       {/* 200 SMA Trend */}
       <div className="tech-indicator-card">
         <div className="tech-indicator-left">
@@ -143,7 +165,7 @@ export default function TechnicalPanel({ candles = [], symbol = "XAUUSD" }) {
           <span className="tech-desc">{t("technicals.atr_desc")}</span>
         </div>
         <span className="tech-value font-mono">
-          {atr != null ? `${atr.toFixed(2)} ${t("market.pts")}` : t("common.not_available")}
+          {atrValue != null ? `${atrValue.toFixed(2)} ${t("market.pts")}` : t("common.not_available")}
         </span>
       </div>
 

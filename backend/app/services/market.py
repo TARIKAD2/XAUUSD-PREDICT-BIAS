@@ -64,8 +64,27 @@ class MarketService:
             {"symbol": symbol.value, "timeframe": timeframe.value},
             projection={"latest_closed_timestamp": 1},
         )
-        value = state.get("latest_closed_timestamp") if state else None
-        return value if isinstance(value, datetime) else None
+        state_ts = state.get("latest_closed_timestamp") if state else None
+
+        # Check market_data collection to ensure watermark reflects all persisted closed candles
+        market_doc = await self._repository.collection.find_one(
+            {"symbol": symbol.value, "timeframe": timeframe.value, "is_closed": True},
+            sort=[("timestamp", DESCENDING)],
+            projection={"timestamp": 1},
+        )
+        market_ts = market_doc.get("timestamp") if market_doc else None
+
+        candidates = [ts for ts in (state_ts, market_ts) if isinstance(ts, datetime)]
+        if not candidates:
+            return None
+        max_ts = max(candidates)
+        # Keep ingestion_state synchronized if market_data had advanced
+        if state_ts != max_ts:
+            await self._state_repository.upsert_one(
+                {"symbol": symbol.value, "timeframe": timeframe.value},
+                {"symbol": symbol.value, "timeframe": timeframe.value, "latest_closed_timestamp": max_ts},
+            )
+        return max_ts
 
     async def watermark(self, symbol: AssetSymbol, timeframe: Timeframe) -> datetime | None:
         """Return the last persisted closed-candle timestamp for an idempotent worker."""
@@ -176,12 +195,15 @@ class MarketService:
             previous_daily_close = await self._previous_daily_close(symbol, timeframe, latest)
             change = ((latest.close / previous_daily_close) - 1) * 100 if previous_daily_close else None
             fresh, _ = freshness_status(latest.timestamp, timeframe)
+            points_change = (latest.close - previous_daily_close) if previous_daily_close else None
             snapshots.append(
                 MarketSnapshot(
                     symbol=symbol,
                     timestamp=latest.timestamp,
                     price=latest.close,
                     daily_change_percent=change,
+                    previous_daily_close=previous_daily_close,
+                    points_change=points_change,
                     timeframe=timeframe,
                     is_stale=not fresh,
                     retrieved_at_utc=latest.retrieved_at_utc,

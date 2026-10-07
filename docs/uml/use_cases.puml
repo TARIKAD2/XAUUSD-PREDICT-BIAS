@@ -1,0 +1,39 @@
+@startuml
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam roundcorner 8
+
+actor "Analyste Quantitatif / Utilisateur" as User
+actor "Fournisseur de Marché (Twelve Data)" as Provider
+
+rectangle "Plateforme AI Market Intelligence (XAU/USD)" {
+    usecase "Consulter les cours spot et bougies fermées" as UC1
+    usecase "Suivre le flux de ticks temps réel via WebSocket" as UC2
+    usecase "Consulter les indicateurs techniques MTF" as UC3
+    usecase "Obtenir le biais directionnel (BULLISH / BEARISH)" as UC4
+    usecase "Sélectionner l'horizon de prédiction (Daily 24H / Weekly 120H)" as UC5
+    usecase "Analyser les facteurs explicatifs (Coefficients logit)" as UC6
+    usecase "Consulter les scénarios de marché et conditions d'invalidation" as UC7
+    usecase "Changer la langue d'interface (EN / FR / AR)" as UC8
+    usecase "Vérifier l'état de santé du système et la qualité des données" as UC9
+    usecase "Diffuser les cotations de marché en temps réel" as UC10
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+
+Provider --> UC10
+UC10 ..> UC2 : <<alimente>>
+UC5 ..> UC4 : <<affine>>
+UC4 ..> UC6 : <<inclus>>
+UC4 ..> UC7 : <<inclus>>
+
+@enduml
+
